@@ -254,7 +254,7 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
   <div class="setup-logo">M32 TACTICAL</div>
   <div class="setup-sub">LIVE + REPLAY COURSE GEOMETRY</div>
 
-  <div class="setup-card">
+  <form class="setup-card" id="setup-form">
     <div class="setup-card-title">MODE</div>
     <div class="field" style="margin-bottom:0">
       <label>APP MODE</label>
@@ -307,11 +307,11 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
   </div>
 
   <div class="setup-actions">
-    <button class="btn-primary" id="setup-btn" type="button" onclick="startApp()">START TACTICAL VIEW</button>
+    <button class="btn-primary" id="setup-btn" type="submit">START TACTICAL VIEW</button>
     <div class="setup-note" id="setup-error" style="color:var(--red);display:none"></div>
     <div class="setup-note">Live mode polls the current window. Replay mode uses your gun times and lets you load old races.</div>
   </div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -2195,14 +2195,18 @@ window.addEventListener('load', ()=>{
   if(STATE.gateSNs?.RC_SNS?.length) el('setup-rc').value=STATE.gateSNs.RC_SNS.join(', ');
   if(STATE.gateSNs?.PIN_SN) el('setup-pin').value=STATE.gateSNs.PIN_SN;
 
+  const setupForm=el('setup-form');
+  if(setupForm){
+    setupForm.addEventListener('submit', ev=>{ ev.preventDefault(); startApp(); });
+  }
   const setupBtn=el('setup-btn');
   if(setupBtn){
-    setupBtn.addEventListener('click', ev=>{ev.preventDefault(); startApp();});
-    setupBtn.addEventListener('touchend', ev=>{ev.preventDefault(); startApp();}, {passive:false});
+    setupBtn.addEventListener('pointerup', ev=>{ ev.preventDefault(); startApp(); });
+    setupBtn.addEventListener('click', ev=>{ ev.preventDefault(); startApp(); });
   }
   ['setup-url','setup-raceday','setup-guns','setup-ww','setup-lw','setup-rc','setup-pin','setup-tzoffset'].forEach(id=>{
     const node=el(id); if(!node) return;
-    node.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); startApp(); } });
+    node.addEventListener('keydown', ev=>{ if(ev.key==='Enter' && id!=='setup-guns'){ ev.preventDefault(); startApp(); } });
   });
   el('replay-slider')?.addEventListener('input', setReplayCursorFromSlider);
   el('replay-back-big')?.addEventListener('click', ()=>nudgeReplayCursor(-300000));
