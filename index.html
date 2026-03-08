@@ -35,12 +35,10 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── SETUP PANEL ── */
-#setup-overlay{position:fixed;inset:0;background:rgba(5,10,16,.97);z-index:500;display:flex;align-items:stretch;justify-content:center;padding:0;overflow:hidden}
+#setup-overlay{position:fixed;inset:0;background:rgba(5,10,16,.97);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:0}
 #setup-overlay.hidden{display:none}
-.setup-scroll{width:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 16px) 14px calc(env(safe-area-inset-bottom,0px) + 18px)}
-.setup-wrap{width:100%;max-width:420px;margin:0 auto;display:flex;flex-direction:column;align-items:stretch}
-.setup-logo{font-family:Orbitron,monospace;font-weight:900;font-size:22px;color:var(--cyan);letter-spacing:4px;margin:0 0 4px;text-align:center}
-.setup-sub{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:20px;text-align:center}
+.setup-logo{font-family:Orbitron,monospace;font-weight:900;font-size:22px;color:var(--cyan);letter-spacing:4px;margin-bottom:4px}
+.setup-sub{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:28px}
 .setup-card{background:var(--bg2);border:1px solid var(--muted2);border-radius:8px;padding:18px 20px;width:100%;max-width:420px;margin-bottom:14px}
 .setup-card-title{font-family:Orbitron,monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:12px}
 .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
@@ -53,14 +51,6 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 .btn-primary:hover{opacity:.85}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .setup-note{font-size:9px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6;max-width:420px}
-.setup-actions{position:sticky;bottom:0;z-index:2;padding-top:8px;background:linear-gradient(to top, rgba(5,10,16,.98) 60%, rgba(5,10,16,0))}
-.setup-actions .btn-primary{max-width:none;box-shadow:0 8px 24px rgba(0,212,255,.16)}
-textarea.cfg-input{background:var(--bg3);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:9px 11px;width:100%;font-size:12px;transition:border-color .15s}
-textarea.cfg-input:focus{border-color:var(--cyan)}
-@media (min-height:760px){
-  #setup-overlay{padding:20px}
-  .setup-scroll{padding:calc(env(safe-area-inset-top,0px) + 8px) 0 calc(env(safe-area-inset-bottom,0px) + 8px);display:flex;align-items:center;justify-content:center}
-}
 
 /* ── TAB BAR ── */
 #tabbar{display:flex;background:var(--bg2);border-bottom:1px solid var(--muted2);flex-shrink:0}
@@ -82,12 +72,6 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
 
 /* ── METRIC CARDS ── */
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.priority-stack{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
-.hero-card .mc-val{font-size:24px}
-.hero-card .mc-sub{font-size:9px}
-.serial-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.serial-chip{background:var(--bg3);border:1px solid var(--muted2);border-radius:999px;padding:6px 8px;font-size:10px;color:var(--text)}
-.serial-note{font-size:8px;color:var(--muted);line-height:1.5;margin-top:8px}
 .card-grid.three{grid-template-columns:1fr 1fr 1fr}
 .card-grid.one{grid-template-columns:1fr}
 .mcard{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;padding:10px 12px;position:relative;overflow:hidden}
@@ -157,7 +141,7 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
 
 /* ── MAP CANVAS ── */
 #map-canvas{display:block;background:var(--bg);border-radius:6px}
-.map-wrap{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;overflow:hidden;margin-bottom:10px;position:relative;max-height:calc(100dvh - 240px)}
+.map-wrap{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;overflow:hidden;margin-bottom:10px;position:relative}
 .map-wrap canvas{width:100%;display:block;touch-action:none}
 .map-overlay{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
 .map-badge{background:rgba(11,21,32,.8);border:1px solid var(--muted2);border-radius:3px;padding:3px 6px;font-size:7px;color:var(--muted);font-family:Orbitron,monospace;letter-spacing:1px}
@@ -243,27 +227,16 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
   .card-grid{grid-template-columns:1fr 1fr 1fr}
   .mc-val{font-size:20px}
 }
-@media(max-width:640px){
-  #tabbar{overflow-x:auto}
-  .tab{min-width:25%}
-  .card-grid,.card-grid.three{grid-template-columns:1fr}
-  .mcard{padding:12px 12px}
-  .mc-val.big{font-size:24px}
-  .mc-val.med{font-size:18px}
-  .mc-val.sm{font-size:15px}
-}
 </style>
 </head>
 <body>
 
 <!-- SETUP OVERLAY -->
 <div id="setup-overlay">
-  <div class="setup-scroll">
-    <div class="setup-wrap">
   <div class="setup-logo">M32 TACTICAL</div>
   <div class="setup-sub">LIVE + REPLAY COURSE GEOMETRY</div>
 
-  <form class="setup-card" id="setup-form">
+  <div class="setup-card">
     <div class="setup-card-title">MODE</div>
     <div class="field" style="margin-bottom:0">
       <label>APP MODE</label>
@@ -283,21 +256,6 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
     <div class="field">
       <label>RACE DAY NUMBER</label>
       <input id="setup-raceday" type="number" placeholder="1" min="1" max="20" value="1">
-    </div>
-    <div class="field" style="margin-bottom:0">
-      <label>EVENT TIMEZONE OFFSET</label>
-      <input id="setup-tzoffset" type="text" placeholder="UTC-5" value="UTC+0" list="tz-presets" autocorrect="off" autocapitalize="off" spellcheck="false">
-      <datalist id="tz-presets">
-        <option value="UTC-12"></option>
-        <option value="UTC-8"></option>
-        <option value="UTC-5"></option>
-        <option value="UTC+0"></option>
-        <option value="UTC+1"></option>
-        <option value="UTC+2"></option>
-        <option value="UTC+8"></option>
-        <option value="UTC+10"></option>
-        <option value="UTC+12"></option>
-      </datalist>
     </div>
   </div>
 
@@ -330,13 +288,9 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
     </div>
   </div>
 
-  <div class="setup-actions">
-    <button class="btn-primary" id="setup-btn" type="submit">START TACTICAL VIEW</button>
-    <div class="setup-note" id="setup-error" style="color:var(--red);display:none"></div>
-    <div class="setup-note">Live mode polls the current window. Replay mode uses your gun times and lets you load old races.</div>
-  </div>
-    </form>
-  </div>
+  <button class="btn-primary" id="setup-btn" onclick="startApp()">START TACTICAL VIEW</button>
+  <div class="setup-note" id="setup-error" style="color:var(--red);display:none"></div>
+  <div class="setup-note">Live mode polls the current window. Replay mode uses your gun times and lets you load old races.</div>
 </div>
 
 <!-- MAIN APP -->
@@ -388,6 +342,9 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
     <div class="tab" data-panel="wind" onclick="switchTab('wind')">
       <span class="tab-icon">⇡</span>WIND
     </div>
+    <div class="tab" data-panel="history" onclick="switchTab('history')">
+      <span class="tab-icon">◫</span>HISTORY
+    </div>
     <div class="tab" data-panel="settings" onclick="switchTab('settings')">
       <span class="tab-icon">⚙</span>CONFIG
     </div>
@@ -399,104 +356,7 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
     <!-- DATA PANEL -->
     <div class="panel active" id="panel-data">
 
-      <div class="sh">PRIMARY OUTPUTS</div>
-      <div class="priority-stack">
-        <div id="opt-line-wrap" class="hero-card">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-            <div>
-              <div class="mc-lbl">1. START LINE OPTIMAL POINT</div>
-              <div style="font-family:Orbitron,monospace;font-size:22px;color:var(--green)" id="opt-pos">—</div>
-              <div class="mc-sub" id="opt-pos-sub">best spot on the line</div>
-            </div>
-            <div style="text-align:right;min-width:140px">
-              <div class="mc-lbl">RC END PENALTY</div>
-              <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--cyan)" id="opt-rc-pen">—</div>
-              <div class="mc-lbl" style="margin-top:4px">PIN END PENALTY</div>
-              <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--orange)" id="opt-pin-pen">—</div>
-            </div>
-          </div>
-          <div style="margin-top:8px"><span class="sh-badge" id="opt-badge">NEEDS WIND + RM</span></div>
-          <div class="opt-line-svg-row">
-            <span class="opt-label-rc"><span class="tag rc">RC</span></span>
-            <svg id="opt-svg" viewBox="0 0 300 20" preserveAspectRatio="none">
-              <line x1="0" y1="10" x2="300" y2="10" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
-              <text id="opt-no-data" x="150" y="13" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(120,160,200,.5)">set reach mark + wind to compute</text>
-            </svg>
-            <span class="opt-label-pin"><span class="tag pin">PIN</span></span>
-          </div>
-        </div>
-
-        <div class="mcard hero-card">
-          <div class="mc-accent purple"></div>
-          <div class="mc-lbl">2. WL GATE BIAS</div>
-          <div class="mc-val big" id="val-lw-bias-main">—</div>
-          <div class="mc-sub" id="val-lw-bias-sub-main">needs wind + LW gate</div>
-        </div>
-
-        <div class="card-grid three" style="margin-bottom:0">
-          <div class="mcard">
-            <div class="mc-accent"></div>
-            <div class="mc-lbl">4. RC → REACH MARK</div>
-            <div class="mc-val sm" id="val-rc-rm">—</div>
-            <div class="mc-sub">metres</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent orange"></div>
-            <div class="mc-lbl">4. PIN → REACH MARK</div>
-            <div class="mc-val sm" id="val-pin-rm">—</div>
-            <div class="mc-sub">metres</div>
-          </div>
-          <div class="mcard" id="card-rm-diff">
-            <div class="mc-accent" id="rm-diff-accent"></div>
-            <div class="mc-lbl">4. DIFFERENCE</div>
-            <div class="mc-val sm" id="val-rm-diff">—</div>
-            <div class="mc-sub" id="val-rm-diff-sub">RC vs PIN to RM</div>
-          </div>
-        </div>
-
-        <div class="mcard hero-card">
-          <div class="mc-accent orange"></div>
-          <div class="mc-lbl">5. TWA FROM START MIDPOINT TO REACH MARK</div>
-          <div class="mc-val big" id="val-reach-twa-main">—</div>
-          <div class="mc-sub" id="val-reach-leg-sub-main">reach geometry pending</div>
-        </div>
-
-        <div class="mcard hero-card">
-          <div class="mc-accent green"></div>
-          <div class="mc-lbl">5. WW GATE BIAS</div>
-          <div class="mc-val big" id="val-ww-bias-main">—</div>
-          <div class="mc-sub" id="val-ww-bias-sub-main">needs wind + WW gate</div>
-        </div>
-
-        <div class="card-grid" style="margin-bottom:0">
-          <div class="mcard highlight">
-            <div class="mc-accent"></div>
-            <div class="mc-lbl">6. COURSE AXIS</div>
-            <div class="mc-val med" id="val-axis">—</div>
-            <div class="mc-sub" id="val-axis-sub">LW → WW bearing</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent yellow"></div>
-            <div class="mc-lbl">6. START LINE AXIS</div>
-            <div class="mc-val med" id="val-sl-axis">—</div>
-            <div class="mc-sub" id="val-sl-length">length —</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent green"></div>
-            <div class="mc-lbl">6. WW GATE AXIS</div>
-            <div class="mc-val med" id="val-ww-axis">—</div>
-            <div class="mc-sub" id="val-ww-bias">bias —</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent purple"></div>
-            <div class="mc-lbl">6. WL GATE AXIS</div>
-            <div class="mc-val med" id="val-lw-axis">—</div>
-            <div class="mc-sub" id="val-lw-bias">bias —</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="sh">REACH MARK</div>
+      <!-- Reach mark -->
       <div class="rm-section" style="margin-bottom:10px">
         <div class="sh" style="margin-bottom:8px">REACH MARK <span class="sh-badge" id="rm-source-badge">NOT SET</span></div>
         <div class="rm-btn-row">
@@ -519,8 +379,122 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
         </div>
       </div>
 
+      <!-- Drift alert -->
       <div class="drift-alert hidden" id="drift-alert">
         ⚠ <span id="drift-text">Mark drift detected</span>
+      </div>
+
+      <!-- Course geometry -->
+      <div class="sh">COURSE AXIS</div>
+      <div class="card-grid" style="margin-bottom:10px">
+        <div class="mcard highlight">
+          <div class="mc-accent"></div>
+          <div class="mc-lbl">COURSE AXIS</div>
+          <div class="mc-val" id="val-axis">—</div>
+          <div class="mc-sub" id="val-axis-sub">LW → WW bearing</div>
+        </div>
+        <div class="mcard">
+          <div class="mc-accent green"></div>
+          <div class="mc-lbl">WW LEG</div>
+          <div class="mc-val med" id="val-wwleg">—</div>
+          <div class="mc-sub" id="val-wwleg-sub">gate midpoint distance</div>
+        </div>
+      </div>
+
+      <!-- Start line -->
+      <div class="sh">START LINE</div>
+      <div class="card-grid" style="margin-bottom:10px">
+        <div class="mcard">
+          <div class="mc-accent yellow"></div>
+          <div class="mc-lbl">START LINE AXIS</div>
+          <div class="mc-val med" id="val-sl-axis">—</div>
+          <div class="mc-sub" id="val-sl-length">length —</div>
+        </div>
+        <div class="mcard" id="card-sl-bias">
+          <div class="mc-accent" id="bias-accent"></div>
+          <div class="mc-lbl">LINE BIAS</div>
+          <div class="mc-val med" id="val-sl-bias">—</div>
+          <div class="mc-sub" id="val-sl-bias-sub">favoured end</div>
+        </div>
+      </div>
+
+      <!-- Optimal start -->
+      <div class="sh">OPTIMAL START <span class="sh-badge" id="opt-badge">NEEDS WIND + RM</span></div>
+      <div id="opt-line-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="mc-lbl">OPTIMAL POSITION</div>
+            <div style="font-family:Orbitron,monospace;font-size:16px;color:var(--green)" id="opt-pos">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="mc-lbl">RC END PENALTY</div>
+            <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--cyan)" id="opt-rc-pen">—</div>
+            <div class="mc-lbl" style="margin-top:4px">PIN END PENALTY</div>
+            <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--orange)" id="opt-pin-pen">—</div>
+          </div>
+        </div>
+        <div class="opt-line-svg-row">
+          <span class="opt-label-rc"><span class="tag rc">RC</span></span>
+          <svg id="opt-svg" viewBox="0 0 300 20" preserveAspectRatio="none">
+            <line x1="0" y1="10" x2="300" y2="10" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
+            <text id="opt-no-data" x="150" y="13" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(120,160,200,.5)">set reach mark + wind to compute</text>
+          </svg>
+          <span class="opt-label-pin"><span class="tag pin">PIN</span></span>
+        </div>
+      </div>
+
+      <!-- Gate biases -->
+      <div class="sh">GATE BIASES</div>
+      <div class="card-grid" style="margin-bottom:10px">
+        <div class="mcard">
+          <div class="mc-accent green"></div>
+          <div class="mc-lbl">WW GATE AXIS <span class="tag ww">WW</span></div>
+          <div class="mc-val med" id="val-ww-axis">—</div>
+          <div class="mc-sub" id="val-ww-bias">bias —</div>
+        </div>
+        <div class="mcard">
+          <div class="mc-accent purple"></div>
+          <div class="mc-lbl">LW GATE AXIS <span class="tag lw">LW</span></div>
+          <div class="mc-val med" id="val-lw-axis">—</div>
+          <div class="mc-sub" id="val-lw-bias">bias —</div>
+        </div>
+      </div>
+
+      <!-- Reach mark geometry -->
+      <div class="sh">REACH MARK GEOMETRY</div>
+      <div class="card-grid three" style="margin-bottom:10px">
+        <div class="mcard">
+          <div class="mc-accent"></div>
+          <div class="mc-lbl">RC → RM</div>
+          <div class="mc-val sm" id="val-rc-rm">—</div>
+          <div class="mc-sub">metres</div>
+        </div>
+        <div class="mcard">
+          <div class="mc-accent orange"></div>
+          <div class="mc-lbl">PIN → RM</div>
+          <div class="mc-val sm" id="val-pin-rm">—</div>
+          <div class="mc-sub">metres</div>
+        </div>
+        <div class="mcard" id="card-rm-diff">
+          <div class="mc-accent" id="rm-diff-accent"></div>
+          <div class="mc-lbl">DIFFERENCE</div>
+          <div class="mc-val sm" id="val-rm-diff">—</div>
+          <div class="mc-sub" id="val-rm-diff-sub">RC vs PIN to RM</div>
+        </div>
+      </div>
+      <div class="card-grid" style="margin-bottom:10px">
+        <div class="mcard">
+          <div class="mc-accent orange"></div>
+          <div class="mc-lbl">REACH LEG</div>
+          <div class="mc-val sm" id="val-reach-leg">—</div>
+          <div class="mc-sub" id="val-reach-twa">mid-start to mark</div>
+        </div>
+        <div class="mcard">
+          <div class="mc-accent"></div>
+          <div class="mc-lbl">RM BEARING</div>
+          <div class="mc-val sm" id="val-rm-brg">—</div>
+          <div class="mc-sub">from start midpoint</div>
+        </div>
       </div>
     </div>
 
@@ -634,6 +608,21 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
       </div>
     </div>
 
+    <!-- HISTORY PANEL -->
+    <div class="panel" id="panel-history">
+      <div class="sh">RACE HISTORY — THIS EVENT <span class="sh-badge" id="hist-count-badge">0 RACES</span></div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:10px;line-height:1.6">
+        Historical bias across races in the current event. In replay mode you can target any saved gun time.
+      </div>
+      <div id="hist-content">
+        <div class="empty-state">
+          <div class="empty-icon">◫</div>
+          <div class="empty-title">NO HISTORY YET</div>
+          <div class="empty-sub">Race history loads automatically when you start the tool. Requires gun times to be set in config.</div>
+        </div>
+      </div>
+    </div>
+
     <!-- SETTINGS PANEL -->
     <div class="panel" id="panel-settings">
       <div class="sh">EVENT CONFIGURATION</div>
@@ -654,10 +643,6 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
           </div>
         </div>
         <div class="cfg-row">
-          <div class="cfg-field">
-            <div class="cfg-label">EVENT TZ OFFSET (e.g. UTC-5 or -5)</div>
-            <input class="cfg-input" id="cfg-tzoffset" value="UTC-5">
-          </div>
           <div class="cfg-field">
             <div class="cfg-label">MODE</div>
             <select class="cfg-input" id="cfg-mode" onchange="onModeChange()">
@@ -756,8 +741,6 @@ let STATE = {
   replayRangeMinTs: null,
   replayRangeMaxTs: null,
   gateSNs: { WW:[], LW:[], RC_SNS:[], PIN_SN:null },
-  eventTzOffsetMin: -300,
-  detectedMarkSNs: [],
   // Live mark positions
   marks: {},   // sn -> {lat,lon}
   prevMarks: {}, // for drift detection
@@ -1061,9 +1044,6 @@ async function poll(){
     // Extract marks
     const refTs=STATE.mode==='replay' ? (STATE.replayCursorTs||STATE.selectedGunTs) : null;
     const newMarks=extractMarksFromRows(rows, refTs);
-    const serialCounts={};
-    for(const row of rows){ if(row[7]==='mark' && row[1]!=null){ const sn=String(row[1]); serialCounts[sn]=(serialCounts[sn]||0)+1; } }
-    STATE.detectedMarkSNs=Object.entries(serialCounts).map(([sn,count])=>({sn,count})).sort((a,b)=>b.count-a.count || a.sn.localeCompare(b.sn));
     const drifted=checkDrift(STATE.prevMarks, newMarks);
     STATE.prevMarks={...STATE.marks};
     STATE.marks={...STATE.marks, ...newMarks};
@@ -1093,7 +1073,6 @@ async function poll(){
     STATE.lastPoll=Date.now();
     setStatus('ok', win.status);
     updateUI();
-    renderDetectedSerials();
     showLoadingBar(100);
     setTimeout(()=>showLoadingBar(0),400);
 
@@ -1160,7 +1139,8 @@ function updateUI(){
   const wwLegLen=(WWGATE&&LWGATE)?Math.round(hav(WWGATE.lat,WWGATE.lon,LWGATE.lat,LWGATE.lon)):null;
 
   el('val-axis').textContent=fmtBrg2(courseAxis);
-  el('val-axis-sub').textContent=courseAxis?`${Math.round(courseAxis)}° up / ${Math.round((courseAxis+180)%360)}° down · ${wwLegLen?wwLegLen+'m leg':''}`:'LW → WW bearing';
+  el('val-axis-sub').textContent=courseAxis?`${Math.round(courseAxis)}° up / ${Math.round((courseAxis+180)%360)}° down`:'LW → WW bearing';
+  el('val-wwleg').textContent=fmtM(wwLegLen);
 
   // Start line
   const slAxis=(RC&&PIN)?brg(RC.lat,RC.lon,PIN.lat,PIN.lon):null;
@@ -1201,18 +1181,12 @@ function updateUI(){
   el('val-lw-axis').textContent=fmtBrg2(lwAxis);
   if(lwBias!=null){
     const bStr=Math.abs(Math.round(lwBias));
-    const side=lwBias>0?'STBD':'PORT';
-    el('val-lw-bias').textContent=`axis favours ${side} by ${bStr}m`;
+    const side=lwBias>0?'STBD (B) +':'PORT (A) +';
+    el('val-lw-bias').textContent=`bias ${side}${bStr}m`;
     el('val-lw-bias').className='mc-sub '+(lwBias>0?'good':'warn-c');
-    el('val-lw-bias-main').textContent=`${bStr}m`;
-    el('val-lw-bias-sub-main').textContent=`${side} side favoured`;
-    el('val-lw-bias-main').className='mc-val big '+(lwBias>0?'good':'warn-c');
   } else {
     el('val-lw-bias').textContent='bias — (needs wind)';
     el('val-lw-bias').className='mc-sub';
-    el('val-lw-bias-main').textContent='—';
-    el('val-lw-bias-sub-main').textContent='needs wind + LW gate';
-    el('val-lw-bias-main').className='mc-val big';
   }
 
   // Reach mark geometry
@@ -1237,14 +1211,10 @@ function updateUI(){
     if(twd!=null){
       const twa=Math.abs(angDiff(rmBrg,twd));
       el('val-reach-twa').textContent=`${twa.toFixed(0)}° TWA from mid`;
-      el('val-reach-twa-main').textContent=`${twa.toFixed(0)}°`;
-      el('val-reach-leg-sub-main').textContent=`bearing ${fmtBrg(rmBrg)} · ${reachLeg}m from midpoint`; 
     }
   } else {
     el('val-reach-leg').textContent='—';
     el('val-rm-brg').textContent='—';
-    el('val-reach-twa-main').textContent='—';
-    el('val-reach-leg-sub-main').textContent='reach geometry pending';
   }
 
   // Optimal start
@@ -1287,10 +1257,8 @@ function updateOptimalStart(RC, PIN, rm, twd, tws){
   const N=res.times.length-1;
   const pct=bestIdx/N;
   const posLabel=pct<0.2?'RC END':pct>0.8?'PIN END':pct<0.4?'NEAR RC':pct>0.6?'NEAR PIN':'MIDLINE';
-  const along=Math.round(pct*((RC&&PIN)?hav(RC.lat,RC.lon,PIN.lat,PIN.lon):0));
   el('opt-badge').textContent='COMPUTED';
   el('opt-pos').textContent=posLabel;
-  if(el('opt-pos-sub')) el('opt-pos-sub').textContent=`~${along}m from RC · ${(pct*100).toFixed(0)}% up the line`; 
   el('opt-rc-pen').textContent=rcPenalty<0.5?'OPTIMAL':`+${rcPenalty.toFixed(1)}s`;
   el('opt-pin-pen').textContent=pinPenalty<0.5?'OPTIMAL':`+${pinPenalty.toFixed(1)}s`;
 
@@ -1372,7 +1340,7 @@ function drawMap(){
   const canvas=document.getElementById('map-canvas');
   const wrap=document.getElementById('map-wrap');
   const W=wrap.clientWidth||320;
-  const H=Math.max(260, Math.min(Math.round(W*1.1), window.innerHeight-230));
+  const H=Math.round(W*1.5);
   canvas.width=W*2; canvas.height=H*2; // retina
   canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
@@ -1394,7 +1362,7 @@ function drawMap(){
 
   // Course-axis-up rotation: WW at top, LW at bottom
   const axisRef = (WWGATE&&LWGATE) ? brg(LWGATE.lat,LWGATE.lon,WWGATE.lat,WWGATE.lon) : 0;
-  const THETA = axisRef*D2R; // rotate so course axis is vertical with WW at top
+  const THETA = (axisRef-90)*D2R; // rotate so course axis is vertical with WW at top
 
   const cLat = (WWGATE&&LWGATE) ? (WWGATE.lat+LWGATE.lat)/2 : (RC?.lat||0);
   const cLon = (WWGATE&&LWGATE) ? (WWGATE.lon+LWGATE.lon)/2 : (RC?.lon||0);
@@ -1418,7 +1386,7 @@ function drawMap(){
   const mnY=Math.min(...rk.map(p=>p[1]));
   const mxY=Math.max(...rk.map(p=>p[1]));
 
-  const pad=24;
+  const pad=36;
   const rangeX=mxX-mnX||100, rangeY=mxY-mnY||100;
   const scaleX=(W-pad*2)/rangeX, scaleY=(H-pad*2)/rangeY;
   const scale=Math.min(scaleX,scaleY);
@@ -1595,7 +1563,7 @@ function drawMap(){
   ctx.fillText('N',W/2,14);
 
   // Tap hint visibility
-  el('map-tap-hint').style.display='block';
+  el('map-tap-hint').style.display=STATE.rm?'none':'block';
 }
 
 function drawMark(ctx, x, y, color, label, r=6){
@@ -1666,17 +1634,6 @@ function renderHistory(){
     </div>`;
 }
 
-function renderDetectedSerials(){
-  const node=el('detected-serials');
-  if(!node) return;
-  const list=STATE.detectedMarkSNs||[];
-  if(!list.length){
-    node.innerHTML='<span class="serial-chip">No marks detected yet</span>';
-    return;
-  }
-  node.innerHTML=list.slice(0,16).map(item=>`<span class="serial-chip">SN ${item.sn} · ${item.count} pings</span>`).join('');
-}
-
 // ══════════════════════════════════════════════════════════════════
 //  GPS + MANUAL REACH MARK
 // ══════════════════════════════════════════════════════════════════
@@ -1702,7 +1659,6 @@ async function gpsSnapRM(){
     btn.style.background='var(--green)';
     setTimeout(()=>{btn.textContent='TAP AT REACH MARK → SET POSITION';btn.style.background='';btn.style.opacity='';},3000);
     updateUI();
-    renderDetectedSerials();
     saveStateToStorage();
   }catch(e){
     btn.textContent='GPS ERROR — TRY AGAIN';
@@ -1722,13 +1678,15 @@ function setManualRM(){
 }
 
 // Map tap to set reach mark
-document.getElementById('map-wrap').addEventListener('pointerup', function(e){
+document.getElementById('map-wrap').addEventListener('click', function(e){
   const canvas=this.querySelector('canvas');
   if(!canvas) return;
   const rect=canvas.getBoundingClientRect();
-  const xPx=(e.clientX-rect.left);
-  const yPx=(e.clientY-rect.top);
-  mapTapToRM(xPx,yPx,rect.width,rect.height);
+  const scaleX=canvas.width/rect.width;
+  const scaleY=canvas.height/rect.height;
+  const xPx=(e.clientX-rect.left)*scaleX;
+  const yPx=(e.clientY-rect.top)*scaleY;
+  mapTapToRM(xPx,yPx,canvas.width,canvas.height);
 });
 
 function mapTapToRM(xPx,yPx,W,H){
@@ -1738,7 +1696,7 @@ function mapTapToRM(xPx,yPx,W,H){
   if(!keyPts.length) return;
 
   const axisRef=(WWGATE&&LWGATE)?brg(LWGATE.lat,LWGATE.lon,WWGATE.lat,WWGATE.lon):0;
-  const THETA=axisRef*D2R;
+  const THETA=(axisRef-90)*D2R;
   const cLat=(WWGATE&&LWGATE)?(WWGATE.lat+LWGATE.lat)/2:(RC?.lat||0);
   const cLon=(WWGATE&&LWGATE)?(WWGATE.lon+LWGATE.lon)/2:(RC?.lon||0);
 
@@ -1751,7 +1709,7 @@ function mapTapToRM(xPx,yPx,W,H){
   const mxX=Math.max(...rk.map(p=>p[0]));
   const mnY=Math.min(...rk.map(p=>p[1]));
   const mxY=Math.max(...rk.map(p=>p[1]));
-  const pad=24;
+  const pad=36;
   const rangeX=mxX-mnX||100, rangeY=mxY-mnY||100;
   const scaleX=(W-pad*2)/rangeX, scaleY=(H-pad*2)/rangeY;
   const scale=Math.min(scaleX,scaleY);
@@ -1792,48 +1750,19 @@ function clearManualWind(){
 }
 
 
-function parseTzOffsetToMinutes(raw){
-  const txt=String(raw||'').trim().toUpperCase().replace('UTC','').replace(/\s+/g,'');
-  if(!txt) return -300;
-  const m=txt.match(/^([+-])?(\d{1,2})(?::?(\d{2}))?$/);
-  if(!m) return -300;
-  const sign=(m[1]==='-')?-1:1;
-  const hh=parseInt(m[2]||'0',10);
-  const mm=parseInt(m[3]||'0',10);
-  return sign*(hh*60+mm);
-}
-function formatOffsetLabel(mins){
-  const sign=mins<0?'-':'+';
-  const abs=Math.abs(mins);
-  const hh=Math.floor(abs/60);
-  const mm=abs%60;
-  return `UTC${sign}${hh}${mm?':'+String(mm).padStart(2,'0'):''}`;
-}
-function formatEventTs(ts, opts={}){
-  if(!ts) return '—';
-  const d=new Date(ts + (STATE.eventTzOffsetMin||0)*60000);
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const month=months[d.getUTCMonth()];
-  const day=d.getUTCDate();
-  const hh=String(d.getUTCHours()).padStart(2,'0');
-  const mm=String(d.getUTCMinutes()).padStart(2,'0');
-  const ss=String(d.getUTCSeconds()).padStart(2,'0');
-  const time=opts.withSeconds===false?`${hh}:${mm}`:`${hh}:${mm}:${ss}`;
-  const core=opts.date===false?time:`${month} ${day} ${time}`;
-  return opts.includeOffset===false?core:`${core} ${formatOffsetLabel(STATE.eventTzOffsetMin||0)}`;
-}
 function formatReplayTs(ts){
   if(!ts) return '—';
-  return formatEventTs(ts, {withSeconds:true, date:true});
+  const d=new Date(ts);
+  return d.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit'});
 }
 function computeReplayRange(){
   const guns=getSortedGuns();
   if(guns.length){
-    STATE.replayRangeMinTs=Math.min(...guns.map(g=>g[1]))-600000;
-    STATE.replayRangeMaxTs=Math.max(...guns.map(g=>g[1]))+3600000;
+    STATE.replayRangeMinTs=Math.min(...guns.map(g=>g[1]))-1800000;
+    STATE.replayRangeMaxTs=Math.max(...guns.map(g=>g[1]))+5400000;
   }else if(STATE.selectedGunTs){
-    STATE.replayRangeMinTs=STATE.selectedGunTs-600000;
-    STATE.replayRangeMaxTs=STATE.selectedGunTs+3600000;
+    STATE.replayRangeMinTs=STATE.selectedGunTs-1800000;
+    STATE.replayRangeMaxTs=STATE.selectedGunTs+5400000;
   }else if(STATE.replayCursorTs){
     STATE.replayRangeMinTs=STATE.replayCursorTs-1800000;
     STATE.replayRangeMaxTs=STATE.replayCursorTs+1800000;
@@ -1914,7 +1843,8 @@ function fillReplayRaceOptions(){
   const current=STATE.selectedRaceNum!=null?String(STATE.selectedRaceNum):'';
   const guns=getSortedGuns();
   sel.innerHTML='<option value="">Auto / latest</option>'+guns.map(([raceNum,gunTs])=>{
-    return `<option value="${raceNum}">R${raceNum} — ${formatEventTs(gunTs, {withSeconds:false})}</option>`;
+    const d=new Date(gunTs);
+    return `<option value="${raceNum}">R${raceNum} — ${d.toLocaleString()}</option>`;
   }).join('');
   const match=guns.some(([raceNum])=>String(raceNum)===current);
   sel.value=match?current:'';
@@ -2031,7 +1961,7 @@ function updateUpdateBanner(){
     }else{
       el('last-update-text').textContent=`Updated ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
     }
-    el('cfg-last-poll').textContent=formatEventTs(STATE.mode==='replay' ? (STATE.replayCursorTs||STATE.selectedGunTs||STATE.lastPoll) : STATE.lastPoll, {withSeconds:true, date:false});
+    el('cfg-last-poll').textContent=d.toLocaleTimeString();
   }
   updateReplayControls();
 }
@@ -2043,6 +1973,7 @@ function switchTab(name){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   el('panel-'+name).classList.add('active');
   if(name==='map') drawMap();
+  if(name==='history') renderHistory();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2058,7 +1989,7 @@ function saveStateToStorage(){
     const toSave={
       eventId:STATE.eventId, raceDay:STATE.raceDay, division:STATE.division, mode:STATE.mode,
       pollInterval:STATE.pollInterval, windowMin:STATE.windowMin,
-      guns:STATE.guns, selectedRaceNum:STATE.selectedRaceNum, selectedGunTs:STATE.selectedGunTs, replayCursorTs:STATE.replayCursorTs, gateSNs:STATE.gateSNs, eventTzOffsetMin:STATE.eventTzOffsetMin,
+      guns:STATE.guns, selectedRaceNum:STATE.selectedRaceNum, selectedGunTs:STATE.selectedGunTs, replayCursorTs:STATE.replayCursorTs, gateSNs:STATE.gateSNs,
       rm:STATE.rm, windManual:STATE.windManual,
       marks:STATE.marks
     };
@@ -2080,7 +2011,6 @@ function saveConfig(){
   STATE.eventId=el('cfg-eventid').value.trim();
   STATE.raceDay=parseInt(el('cfg-raceday').value)||1;
   STATE.division=el('cfg-division').value.trim()||'M32';
-  STATE.eventTzOffsetMin=parseTzOffsetToMinutes(el('cfg-tzoffset').value);
   STATE.mode=el('cfg-mode').value||'live';
   STATE.pollInterval=parseInt(el('cfg-poll').value)||30;
   STATE.windowMin=parseInt(el('cfg-window').value)||5;
@@ -2111,11 +2041,11 @@ function saveConfig(){
   onModeChange();
   updateReplayControls();
 
-  el('hdr-sub').textContent=STATE.eventId?`EVENT: ${STATE.eventId.substring(0,12)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${formatOffsetLabel(STATE.eventTzOffsetMin)}`:'—';
+  el('hdr-sub').textContent=STATE.eventId?`EVENT: ${STATE.eventId.substring(0,12)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()}`:'—';
   saveStateToStorage();
   stopPolling();
   startPolling();
-  renderDetectedSerials();
+  if(STATE.guns.length) loadHistory();
   switchTab('data');
   alert(`✓ Config saved. ${STATE.mode==='replay'?'Replay':'Polling'} started.`);
 }
@@ -2124,7 +2054,6 @@ function fillConfigUI(){
   el('cfg-eventid').value=STATE.eventId||'';
   el('cfg-raceday').value=STATE.raceDay||1;
   el('cfg-division').value=STATE.division||'M32';
-  el('cfg-tzoffset').value=formatOffsetLabel(STATE.eventTzOffsetMin||0);
   el('cfg-mode').value=STATE.mode||'live';
   el('cfg-poll').value=STATE.pollInterval||30;
   el('cfg-window').value=STATE.windowMin||5;
@@ -2166,7 +2095,6 @@ function startApp(){
   }
   STATE.eventId=eventId;
   STATE.raceDay=parseInt(el('setup-raceday').value)||1;
-  STATE.eventTzOffsetMin=parseTzOffsetToMinutes(el('setup-tzoffset').value);
   STATE.mode=el('setup-mode').value||'live';
   const gunsRaw=(el('setup-guns')?.value||'').trim();
   STATE.guns=gunsRaw.split('\n').map(l=>{
@@ -2188,7 +2116,7 @@ function startApp(){
 
   syncSelectedGun();
   syncReplayCursor(true);
-  el('hdr-sub').textContent=`EVENT: ${eventId.substring(0,14)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${formatOffsetLabel(STATE.eventTzOffsetMin)}`;
+  el('hdr-sub').textContent=`EVENT: ${eventId.substring(0,14)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()}`;
   saveStateToStorage();
   launchApp();
 }
@@ -2200,7 +2128,7 @@ function launchApp(){
   fillConfigUI();
   updateReplayControls();
   startPolling();
-  renderDetectedSerials();
+  if(STATE.guns.length) setTimeout(loadHistory,1200);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2212,25 +2140,20 @@ window.addEventListener('load', ()=>{
   }
   if(STATE.eventId) el('setup-url').value=STATE.eventId;
   if(el('setup-mode')) el('setup-mode').value=STATE.mode||'live';
-  if(el('setup-tzoffset')) el('setup-tzoffset').value=formatOffsetLabel(STATE.eventTzOffsetMin||0);
   if(el('setup-guns')) el('setup-guns').value=(STATE.guns||[]).map(g=>g.join(',')).join('\n');
   if(STATE.gateSNs?.WW?.length) el('setup-ww').value=STATE.gateSNs.WW.join(', ');
   if(STATE.gateSNs?.LW?.length) el('setup-lw').value=STATE.gateSNs.LW.join(', ');
   if(STATE.gateSNs?.RC_SNS?.length) el('setup-rc').value=STATE.gateSNs.RC_SNS.join(', ');
   if(STATE.gateSNs?.PIN_SN) el('setup-pin').value=STATE.gateSNs.PIN_SN;
 
-  const setupForm=el('setup-form');
-  if(setupForm){
-    setupForm.addEventListener('submit', ev=>{ ev.preventDefault(); startApp(); });
-  }
   const setupBtn=el('setup-btn');
   if(setupBtn){
-    setupBtn.addEventListener('pointerup', ev=>{ ev.preventDefault(); startApp(); });
-    setupBtn.addEventListener('click', ev=>{ ev.preventDefault(); startApp(); });
+    setupBtn.addEventListener('click', ev=>{ev.preventDefault(); startApp();});
+    setupBtn.addEventListener('touchend', ev=>{ev.preventDefault(); startApp();}, {passive:false});
   }
-  ['setup-url','setup-raceday','setup-guns','setup-ww','setup-lw','setup-rc','setup-pin','setup-tzoffset'].forEach(id=>{
+  ['setup-url','setup-raceday','setup-guns','setup-ww','setup-lw','setup-rc','setup-pin'].forEach(id=>{
     const node=el(id); if(!node) return;
-    node.addEventListener('keydown', ev=>{ if(ev.key==='Enter' && id!=='setup-guns'){ ev.preventDefault(); startApp(); } });
+    node.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); startApp(); } });
   });
   el('replay-slider')?.addEventListener('input', setReplayCursorFromSlider);
   el('replay-back-big')?.addEventListener('click', ()=>nudgeReplayCursor(-300000));
@@ -2244,4 +2167,3 @@ window.addEventListener('resize', ()=>{ if(el('panel-map').classList.contains('a
 </script>
 </body>
 </html>
-
