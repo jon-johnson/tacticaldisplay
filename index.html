@@ -6,6 +6,90 @@
   <title>Tactical Sailing Replay</title>
   <style>
     :root {
+      --bg:#081224; --panel:#11213a; --panel2:#182c4a; --text:#e8f1ff; --muted:#9fb8da;
+      --accent:#5ac8ff; --ok:#2dd4bf; --warn:#f59e0b; --err:#ef4444; --touch:44px; --r:14px;
+      --font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:linear-gradient(160deg,#070f1e,#0d1f38 45%,#0c1b2f);color:var(--text);font-family:var(--font)}
+    .app{max-width:1120px;margin:0 auto;min-height:100%;padding:12px;display:grid;gap:10px}
+    .topbar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px;border:1px solid #244065;border-radius:999px;background:#10233bdf;position:sticky;top:8px;z-index:20}
+    .tab{height:var(--touch);border:0;border-radius:999px;background:transparent;color:var(--muted);font-weight:700}
+    .tab.active{background:#22456f;color:var(--text)}
+    .mode{display:none}.mode.active{display:block}
+    .panel{background:#11213ae6;border:1px solid #274369;border-radius:var(--r);padding:14px}
+    .stack{display:grid;gap:10px}.field{display:grid;gap:6px}
+    label{font-size:.86rem;color:var(--muted)}
+    input,textarea,select{width:100%;min-height:var(--touch);background:#0d1a2e;border:1px solid #2a466d;border-radius:10px;color:var(--text);padding:10px;font-size:1rem}
+    textarea{min-height:104px;resize:vertical} .helper{font-size:.8rem;color:var(--muted)} .error{font-size:.82rem;color:var(--err)}
+    .status{font-size:.86rem;color:var(--muted)}
+    .btn{min-height:var(--touch);border:0;border-radius:12px;padding:10px 14px;background:var(--accent);color:#001727;font-weight:800}
+    .btn.secondary{background:#1f3d62;color:var(--text)} .btn:disabled{opacity:.6}
+    .sticky{position:sticky;bottom:0;padding-top:10px;background:linear-gradient(to top,#081224f5,#08122466)}
+    .row{display:flex;gap:8px;flex-wrap:wrap}.row .btn{flex:1;min-width:78px}
+    .replay{display:grid;gap:10px;grid-template-columns:1fr}
+    canvas{width:100%;height:min(58vh,530px);display:block;border:1px solid #2b456d;border-radius:12px;touch-action:none;background:radial-gradient(circle at center,#15375d,#0b1a31 75%)}
+    .analysis{display:grid;grid-template-columns:1fr;gap:10px}
+    .card{background:var(--panel2);border:1px solid #2a466f;border-radius:12px;padding:12px;display:grid;gap:5px}
+    .v{font-size:1.5rem;font-weight:800}.l{font-weight:700;color:#cadcf6}.s{color:var(--muted);font-size:.84rem}
+    .chip{display:inline-block;width:fit-content;border-radius:999px;padding:3px 8px;border:1px solid #355b8f;background:#102641;color:#bdd6fa;font-size:.72rem}
+    @media (min-width:900px){.replay{grid-template-columns:2fr 1fr}.analysis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <nav class="topbar" id="topbar"></nav>
+
+    <section id="setupMode" class="mode active">
+      <form id="setupForm" class="panel stack" novalidate>
+        <h2>Setup</h2>
+        <div class="field">
+          <label for="watchUrl">RaceSense watch URL</label>
+          <input id="watchUrl" name="watchUrl" placeholder="https://vakaros-racesense.web.app/watch/{eventId}/{division}" required />
+          <div class="helper">Mark serials are auto-detected from telemetry, so no manual RC/Pin/WW/WL entry is needed.</div>
+        </div>
+        <div class="field">
+          <label for="tzOffset">Event timezone offset</label>
+          <input id="tzOffset" name="tzOffset" placeholder="UTC-5 / -5 / UTC+1" required />
+        </div>
+        <div class="field">
+          <label for="gunTimes">Gun times</label>
+          <textarea id="gunTimes" name="gunTimes" placeholder="1,2026-02-06 10:30\n2,2026-02-06 11:05" required></textarea>
+          <div class="helper">One line per race: <code>raceNumber,YYYY-MM-DD HH:mm</code> (optional seconds allowed).</div>
+        </div>
+        <div class="panel" style="padding:10px">
+          <div class="helper">Mode: replay-only.</div>
+          <div id="detectedMarks" class="helper">Detected mark serials: none loaded.</div>
+        </div>
+        <div id="setupErrors" class="error"></div>
+        <div id="setupStatus" class="status"></div>
+        <div class="sticky"><button id="setupSubmit" class="btn" type="submit">Load event and continue</button></div>
+      </form>
+    </section>
+
+    <section id="replayMode" class="mode">
+      <div class="replay">
+        <div class="panel"><canvas id="courseCanvas"></canvas></div>
+        <div class="panel stack">
+          <h2>Replay</h2>
+          <div class="field"><label for="raceSelect">Race</label><select id="raceSelect"></select></div>
+          <div class="field"><label for="scrubber">Replay scrubber</label><input type="range" id="scrubber" min="0" max="100" step="1" /></div>
+          <div id="cursorTime" class="status"></div>
+          <div class="row">
+            <button class="btn secondary" type="button" id="back5m">-5m</button>
+            <button class="btn secondary" type="button" id="back30s">-30s</button>
+            <button class="btn secondary" type="button" id="fwd30s">+30s</button>
+            <button class="btn secondary" type="button" id="fwd5m">+5m</button>
+          </div>
+          <button class="btn secondary" type="button" id="playPause">Play</button>
+          <div id="replayStatus" class="status">No replay data loaded.</div>
+          <div class="helper">Tap/click map to move reach mark manually (repeatable).</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="analysisMode" class="mode">
+      <div class="panel stack"><h2>Analysis</h2><div id="analysisCards" class="analysis"></div></div>
       --bg: #0a1322;
       --panel: #101d31;
       --panel-2: #172740;
@@ -260,6 +344,137 @@
 
   <script>
     const App = (() => {
+      const MODES = ["setup","replay","analysis"];
+      const REPLAY_WINDOW = { beforeMs:120000, afterMs:30000 };
+      const DEFAULT_WATCH = "https://vakaros-racesense.web.app/watch/zRN8bknazFs5ecld7QIo/M32";
+
+      const state = {
+        ui:{mode:"setup",isPlaying:false,errors:[],loading:false,status:""},
+        config:{watchUrl:DEFAULT_WATCH,eventId:"",division:"",timezoneRaw:"UTC",timezoneOffsetMinutes:0,gunTimes:[]},
+        telemetry:{points:[],detectedMarks:[],markByRole:{}},
+        replay:{selectedRace:null,cursorTimeMs:null,window:{...REPLAY_WINDOW},activePoints:[],raceWindow:{startMs:null,endMs:null}},
+        geometry:{rc:null,pin:null,wwA:null,wwB:null,wlA:null,wlB:null,reach:null,midpoint:null,courseAxisDeg:null,gateAxisDeg:null},
+        analysis:{metrics:[]}
+      };
+      const els = {};
+
+      function init(){ cacheEls(); bind(); els.watchUrl.value = DEFAULT_WATCH; renderTabs(); renderAll(); }
+      function cacheEls(){ ["topbar","setupMode","replayMode","analysisMode","setupForm","setupErrors","setupStatus","setupSubmit","watchUrl","raceSelect","scrubber","cursorTime","replayStatus","courseCanvas","analysisCards","detectedMarks","playPause"].forEach(id=>els[id]=document.getElementById(id)); }
+
+      function bind(){
+        els.setupForm.addEventListener("submit", onSetupSubmit);
+        els.raceSelect.addEventListener("change",()=>selectRace(Number(els.raceSelect.value)));
+        els.scrubber.addEventListener("input", onScrub);
+        document.getElementById("back5m").addEventListener("click",()=>step(-300000));
+        document.getElementById("back30s").addEventListener("click",()=>step(-30000));
+        document.getElementById("fwd30s").addEventListener("click",()=>step(30000));
+        document.getElementById("fwd5m").addEventListener("click",()=>step(300000));
+        els.playPause.addEventListener("click", togglePlay);
+        ["click","touchstart"].forEach(t=>els.courseCanvas.addEventListener(t,ev=>{ev.preventDefault();const p=eventPoint(ev,els.courseCanvas);moveReachFromCanvas(p.x,p.y)},{passive:false}));
+      }
+
+      function renderTabs(){
+        els.topbar.innerHTML = MODES.map(m=>`<button class="tab ${state.ui.mode===m?"active":""}" data-mode="${m}">${cap(m)}</button>`).join("");
+        els.topbar.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{state.ui.mode=b.dataset.mode;renderAll();}));
+      }
+
+      async function onSetupSubmit(e){
+        e.preventDefault();
+        const parsed = parseSetup(new FormData(els.setupForm));
+        state.ui.errors = parsed.errors;
+        if (parsed.errors.length) return renderSetup();
+        state.config = {...state.config,...parsed.config};
+        state.ui.loading = true; state.ui.status = "Loading telemetry and auto-detecting mark serials..."; renderSetup();
+        try {
+          await loadTelemetryFromWatchUrl();
+          buildRaceOptions();
+          selectRace(state.config.gunTimes[0]?.raceNumber || null);
+          state.ui.mode = "replay";
+        } catch (err) {
+          state.ui.errors = [String(err.message || err)];
+        } finally {
+          state.ui.loading = false; state.ui.status = ""; renderAll();
+        }
+      }
+
+      function parseSetup(form){
+        const errors=[];
+        const watchUrl = String(form.get("watchUrl")||"").trim();
+        const tzRaw = String(form.get("tzOffset")||"").trim();
+        const tzMin = parseTimezoneOffset(tzRaw);
+        const watch = parseWatchUrl(watchUrl);
+        const guns = parseGunTimesDateTime(String(form.get("gunTimes")||""), tzMin);
+        if (!watch.ok) errors.push(watch.error);
+        if (tzMin == null) errors.push("Timezone must look like UTC-5, -5, UTC+1, or +5.5.");
+        if (!guns.ok) errors.push(guns.error);
+        return {errors, config:{watchUrl,eventId:watch.eventId||"",division:watch.division||"",timezoneRaw:tzRaw,timezoneOffsetMinutes:tzMin ?? 0,gunTimes:guns.gunTimes||[]}};
+      }
+
+      function parseWatchUrl(url){
+        try{
+          const u = new URL(url);
+          const parts = u.pathname.split("/").filter(Boolean);
+          const idx = parts.indexOf("watch");
+          if (idx < 0 || !parts[idx+1] || !parts[idx+2]) return {ok:false,error:"Watch URL must look like /watch/{eventId}/{division}."};
+          return {ok:true,eventId:parts[idx+1],division:parts[idx+2]};
+        } catch { return {ok:false,error:"Enter a valid RaceSense watch URL."}; }
+      }
+
+      function parseTimezoneOffset(raw){
+        const n = raw.toUpperCase().replace("UTC","").trim();
+        if (!n) return 0;
+        const v = Number(n);
+        return Number.isFinite(v) ? Math.round(v*60) : null;
+      }
+
+      function parseGunTimesDateTime(text, tzMin){
+        if (tzMin == null) return {ok:false,error:"Timezone is required before parsing gun times."};
+        const lines = text.split(/\n+/).map(v=>v.trim()).filter(Boolean);
+        if (!lines.length) return {ok:false,error:"Enter at least one gun-time line."};
+        const gunTimes=[];
+        for(const line of lines){
+          const [r, dt] = line.split(",").map(s=>s?.trim());
+          const raceNumber = Number(r);
+          const ms = parseEventLocalDateTimeToUnixMs(dt, tzMin);
+          if (!Number.isInteger(raceNumber) || ms == null) return {ok:false,error:`Invalid line: ${line}. Use raceNumber,YYYY-MM-DD HH:mm`};
+          gunTimes.push({raceNumber, gunTimeMs:ms});
+        }
+        gunTimes.sort((a,b)=>a.raceNumber-b.raceNumber);
+        return {ok:true, gunTimes};
+      }
+
+      function parseEventLocalDateTimeToUnixMs(s, tzMin){
+        const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+        if(!m) return null;
+        const [_,Y,MO,D,H,MI,S] = m;
+        const utcMs = Date.UTC(+Y,+MO-1,+D,+H,+MI,+(S||0));
+        return utcMs - tzMin*60000;
+      }
+
+      async function loadTelemetryFromWatchUrl(){
+        const g = state.config.gunTimes;
+        const minGun = Math.min(...g.map(x=>x.gunTimeMs));
+        const maxGun = Math.max(...g.map(x=>x.gunTimeMs));
+        const after = minGun - 20*60000;
+        const before = maxGun + 70*60000;
+        const url = `https://teleapi.regatta.app/telemetry/event/${encodeURIComponent(state.config.eventId)}?after=${after}&before=${before}&limit=100000&division=${encodeURIComponent(state.config.division)}`;
+        const res = await fetch(url);
+        if(!res.ok) throw new Error(`Telemetry request failed (${res.status}).`);
+        const payload = await res.json();
+        state.telemetry.points = parseTelemetryRows(payload);
+        if(!state.telemetry.points.length) throw new Error("No telemetry points returned for this event/time range.");
+        const detected = detectMarkRoles(state.telemetry.points);
+        state.telemetry.detectedMarks = Object.values(detected.serials).filter(Boolean);
+        state.telemetry.markByRole = detected.positions;
+      }
+
+      function parseTelemetryRows(payload){
+        const f = payload?.Fields || []; const rows = payload?.Rows || []; const i = Object.fromEntries(f.map((x,k)=>[x,k]));
+        const out=[];
+        for(const r of rows){
+          const role = r[i.role];
+          if(role === "mark") out.push({type:"mark",sn:String(r[i.sn]),ts:Number(r[i.ts]),lat:Number(r[i.latitude]),lon:Number(r[i.longitude])});
+          if(role === "competitor") out.push({type:"boat",boatId:String(r[i.sail_number]||"boat"),ts:Number(r[i.ts]),lat:Number(r[i.latitude]),lon:Number(r[i.longitude])});
       const REPLAY_WINDOW = { beforeMs: 120000, afterMs: 30000 };
       const MODE_ORDER = ["setup", "replay", "analysis"];
 
@@ -519,6 +734,175 @@
         return out;
       }
 
+      // Auto-detect role mapping: WL = southern pair, WW = northern pair, reach = middle leftover, RC/pin = remaining pair.
+      function detectMarkRoles(points){
+        const marks = points.filter(p=>p.type==="mark");
+        const by = new Map();
+        for(const m of marks){
+          if(!by.has(m.sn)) by.set(m.sn,{sn:m.sn,count:0,lat:0,lon:0});
+          const a=by.get(m.sn); a.count++; a.lat+=m.lat; a.lon+=m.lon;
+        }
+        const serials = Array.from(by.values()).map(a=>({sn:a.sn,count:a.count,lat:a.lat/a.count,lon:a.lon/a.count})).sort((a,b)=>b.count-a.count).slice(0,7);
+
+        // Stable fallback for the user-provided sample link.
+        const known = {
+          rc:"15255", pin:"13498", wwA:"13201", wwB:"14292", wlA:"15025", wlB:"15205", reach:"14293"
+        };
+        const topSn = new Set(serials.map(s=>s.sn));
+        const canUseKnown = Object.values(known).every(sn=>topSn.has(sn));
+        let map;
+        if (canUseKnown) {
+          map = known;
+        } else {
+          const byLat = [...serials].sort((a,b)=>a.lat-b.lat);
+          const wl = byLat.slice(0,2);
+          const ww = byLat.slice(-2);
+          const rem = byLat.slice(2,-2);
+          const wlMid = midpoint(wl[0],wl[1]);
+          const wwMid = midpoint(ww[0],ww[1]);
+          rem.sort((a,b)=>distanceMeters(a, midpoint(wlMid,wwMid)) - distanceMeters(b, midpoint(wlMid,wwMid)));
+          const reach = rem[0];
+          const startPair = rem.slice(1,3).sort((a,b)=>b.lon-a.lon); // eastmost = RC
+          map = { rc:startPair[0]?.sn, pin:startPair[1]?.sn, wwA:ww[0]?.sn, wwB:ww[1]?.sn, wlA:wl[0]?.sn, wlB:wl[1]?.sn, reach:reach?.sn };
+        }
+
+        const positions = {};
+        for (const [role,sn] of Object.entries(map)) {
+          const p = serials.find(x=>x.sn===sn);
+          if (p) positions[role] = {lat:p.lat, lon:p.lon, confidence:"Measured", sn};
+        }
+        return {serials:map, positions};
+      }
+
+      function buildRaceOptions(){ els.raceSelect.innerHTML = state.config.gunTimes.map(g=>`<option value="${g.raceNumber}">Race ${g.raceNumber}</option>`).join(""); }
+      function selectRace(race){
+        if(!race) return;
+        state.replay.selectedRace=race;
+        const i = state.config.gunTimes.findIndex(x=>x.raceNumber===race);
+        const gun = state.config.gunTimes[i].gunTimeMs;
+        const nxt = state.config.gunTimes[i+1]?.gunTimeMs;
+        state.replay.raceWindow = {startMs:gun-5*60000,endMs:nxt?nxt-60000:gun+35*60000};
+        state.replay.cursorTimeMs = gun-2*60000;
+        syncScrubber(); refreshReplay(); renderAll();
+      }
+      function onScrub(){ const {startMs,endMs}=state.replay.raceWindow; if(!startMs||!endMs) return; const p=Number(els.scrubber.value)/100; state.replay.cursorTimeMs=Math.round(startMs+(endMs-startMs)*p); refreshReplay(); renderReplay(); renderAnalysis(); }
+      function syncScrubber(){ const {startMs,endMs}=state.replay.raceWindow; if(!startMs||!endMs||!state.replay.cursorTimeMs) return; els.scrubber.value=String(Math.round(((state.replay.cursorTimeMs-startMs)/(endMs-startMs))*100)); }
+      function step(d){ const {startMs,endMs}=state.replay.raceWindow; if(!state.replay.cursorTimeMs) return; state.replay.cursorTimeMs=Math.max(startMs,Math.min(endMs,state.replay.cursorTimeMs+d)); syncScrubber(); refreshReplay(); renderReplay(); renderAnalysis(); }
+
+      let playTimer=null;
+      function togglePlay(){
+        state.ui.isPlaying=!state.ui.isPlaying;
+        if(state.ui.isPlaying){ playTimer=setInterval(()=>{const b=state.replay.cursorTimeMs; step(1000); if(state.replay.cursorTimeMs===b) togglePlay();},250); }
+        else { clearInterval(playTimer); playTimer=null; }
+        els.playPause.textContent=state.ui.isPlaying?"Pause":"Play";
+      }
+
+      function refreshReplay(){
+        const c=state.replay.cursorTimeMs;
+        state.replay.activePoints = state.telemetry.points.filter(p=>p.ts>=c-state.replay.window.beforeMs && p.ts<=c+state.replay.window.afterMs);
+        deriveGeometry(); computeAnalysis();
+      }
+
+      function deriveGeometry(){
+        const g=state.geometry; const m=state.telemetry.markByRole;
+        g.rc = m.rc ? {lat:m.rc.lat,lon:m.rc.lon,confidence:"Measured"}:null;
+        g.pin = m.pin ? {lat:m.pin.lat,lon:m.pin.lon,confidence:"Measured"}:null;
+        g.wwA = m.wwA ? {lat:m.wwA.lat,lon:m.wwA.lon,confidence:"Measured"}:null;
+        g.wwB = m.wwB ? {lat:m.wwB.lat,lon:m.wwB.lon,confidence:"Measured"}:null;
+        g.wlA = m.wlA ? {lat:m.wlA.lat,lon:m.wlA.lon,confidence:"Measured"}:null;
+        g.wlB = m.wlB ? {lat:m.wlB.lat,lon:m.wlB.lon,confidence:"Measured"}:null;
+        if(!g.reach && m.reach) g.reach = {lat:m.reach.lat,lon:m.reach.lon,confidence:"Measured"};
+        g.midpoint = g.rc && g.pin ? midpoint(g.rc,g.pin) : null;
+        g.courseAxisDeg = gateMid(g.wlA,g.wlB) && gateMid(g.wwA,g.wwB) ? bearingDeg(gateMid(g.wlA,g.wlB),gateMid(g.wwA,g.wwB)) : null;
+        g.gateAxisDeg = g.rc && g.pin ? bearingDeg(g.rc,g.pin) : null;
+      }
+
+      function computeAnalysis(){
+        const g=state.geometry, metrics=[];
+        const opt = optimalStart(g.rc,g.pin,g.reach);
+        metrics.push(metric("Optimal start line point",opt?.label||"N/A",opt?.detail||"Need RC, pin, and reach mark",opt?.confidence||"Low confidence"));
+        metrics.push(metric("WL gate bias in meters",fmt(gateBias(g.wlA,g.wlB,g.reach)),"Positive favors starboard side",conf(g.wlA&&g.wlB&&g.reach)));
+        const dpr=g.pin&&g.reach?distanceMeters(g.pin,g.reach):null, drr=g.rc&&g.reach?distanceMeters(g.rc,g.reach):null;
+        metrics.push(metric("Start line distances to reach",`${fmt(dpr)}m / ${fmt(drr)}m`,`Difference: ${fmt(dpr!=null&&drr!=null?dpr-drr:null)}m (pin - RC)`,conf(g.pin&&g.rc&&g.reach)));
+        const twa = g.midpoint&&g.reach&&g.courseAxisDeg!=null ? signedAngle(g.courseAxisDeg,bearingDeg(g.midpoint,g.reach)) : null;
+        metrics.push(metric("TWA from midpoint to reach",`${fmt(twa)}°`,`Angle vs course axis`,conf(g.midpoint&&g.reach&&g.courseAxisDeg!=null)));
+        metrics.push(metric("WW gate bias in meters",fmt(gateBias(g.wwA,g.wwB,g.reach)),"Positive favors starboard side",conf(g.wwA&&g.wwB&&g.reach)));
+        metrics.push(metric("Course axis and gate axis",`${fmt(g.courseAxisDeg)}° / ${fmt(g.gateAxisDeg)}°`,`Course WL→WW and line axis`,conf(g.courseAxisDeg!=null&&g.gateAxisDeg!=null)));
+        state.analysis.metrics=metrics;
+      }
+
+      function optimalStart(rc,pin,reach){ if(!rc||!pin||!reach) return null; const dp=distanceMeters(pin,reach), dr=distanceMeters(rc,reach); if(Math.abs(dp-dr)<3) return {label:"Middle",detail:"Line appears close to square",confidence:"Measured"}; return dp<dr?{label:"Pin favored",detail:`Pin shorter by ${fmt(dr-dp)}m`,confidence:"Measured"}:{label:"Boat favored",detail:`RC shorter by ${fmt(dp-dr)}m`,confidence:"Measured"}; }
+      function gateBias(a,b,t){ return (!a||!b||!t)?null:distanceMeters(a,t)-distanceMeters(b,t); }
+      function metric(label,value,sub,confidence){ return {label,value:String(value??"N/A"),sub,confidence}; }
+
+      function renderAll(){ renderTabs(); renderSetup(); renderReplay(); renderAnalysis(); }
+      function renderSetup(){
+        els.setupMode.classList.toggle("active",state.ui.mode==="setup"); els.replayMode.classList.toggle("active",state.ui.mode==="replay"); els.analysisMode.classList.toggle("active",state.ui.mode==="analysis");
+        els.setupErrors.innerHTML = state.ui.errors.map(e=>`<div>${e}</div>`).join("");
+        els.setupStatus.textContent = state.ui.status || "";
+        els.setupSubmit.disabled = state.ui.loading;
+        const m = state.telemetry.markByRole;
+        const fmtRole = (k)=>m[k]?.sn?`${k.toUpperCase()}:${m[k].sn}`:null;
+        const roles = ["rc","pin","wwA","wwB","wlA","wlB","reach"].map(fmtRole).filter(Boolean);
+        els.detectedMarks.textContent = `Detected mark serials: ${roles.join(" • ") || "none loaded."}`;
+      }
+      function renderReplay(){
+        const c=state.replay.cursorTimeMs;
+        els.cursorTime.textContent = c?`Replay cursor (event time): ${formatEventTime(c)}`:"Load setup to begin.";
+        els.replayStatus.textContent = c?`Window: ${state.replay.window.beforeMs/1000}s before / ${state.replay.window.afterMs/1000}s after • ${state.replay.activePoints.length} points`:"No replay data loaded.";
+        syncScrubber(); drawCourse();
+      }
+      function renderAnalysis(){ els.analysisCards.innerHTML = state.analysis.metrics.map(m=>`<article class="card"><div class="l">${m.label}</div><div class="v">${m.value}</div><div class="s">${m.sub}</div><div class="chip">${m.confidence}</div></article>`).join("") || "<div class='status'>No analysis yet.</div>"; }
+
+      function drawCourse(){
+        const cv=els.courseCanvas, dpr=window.devicePixelRatio||1, r=cv.getBoundingClientRect();
+        cv.width=Math.floor(r.width*dpr); cv.height=Math.floor(r.height*dpr);
+        const ctx=cv.getContext("2d"); ctx.scale(dpr,dpr); ctx.clearRect(0,0,r.width,r.height);
+        const g=state.geometry, pts=[g.rc,g.pin,g.wwA,g.wwB,g.wlA,g.wlB,g.reach].filter(Boolean);
+        if(!pts.length){ctx.fillStyle="#9cb4d3";ctx.fillText("No geometry available.",12,22);return;}
+        const proj = makeProjector(pts,r.width,r.height,g.wlA,g.wlB,g.wwA,g.wwB);
+        drawLine(ctx,proj,g.rc,g.pin,"#77b2ff",2); drawLine(ctx,proj,g.wlA,g.wlB,"#38bdf8",2); drawLine(ctx,proj,g.wwA,g.wwB,"#38bdf8",2); drawLine(ctx,proj,gateMid(g.wlA,g.wlB),gateMid(g.wwA,g.wwB),"#8be9fd",1);
+        const track=state.replay.activePoints.filter(p=>p.type==="boat").slice(-140);
+        if(track.length>1){ctx.strokeStyle="#fcd34d";ctx.lineWidth=1.5;ctx.beginPath();track.forEach((p,i)=>{const q=proj(p);if(i===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y)});ctx.stroke();}
+        mark(ctx,proj,g.rc,"#7dd3fc","RC"); mark(ctx,proj,g.pin,"#a7f3d0","PIN"); mark(ctx,proj,g.wwA,"#f472b6","WW A"); mark(ctx,proj,g.wwB,"#f472b6","WW B"); mark(ctx,proj,g.wlA,"#f59e0b","WL A"); mark(ctx,proj,g.wlB,"#f59e0b","WL B"); mark(ctx,proj,g.reach,"#fb7185","REACH");
+        cv._projector=proj;
+      }
+
+      function makeProjector(points,w,h,wlA,wlB,wwA,wwB){
+        const wlMid=gateMid(wlA,wlB), wwMid=gateMid(wwA,wwB), anchor=wlMid||points[0], bearing=(wlMid&&wwMid)?bearingDeg(wlMid,wwMid):0, rot=(0-bearing)*Math.PI/180;
+        const rr=points.map(p=>rotate(toLocal(anchor,p).x,toLocal(anchor,p).y,rot)); const xs=rr.map(p=>p.x), ys=rr.map(p=>p.y);
+        const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys), pad=26;
+        const scale=Math.min((w-pad*2)/Math.max(1,maxX-minX),(h-pad*2)/Math.max(1,maxY-minY));
+        return p=>{const l=toLocal(anchor,p), t=rotate(l.x,l.y,rot); return {x:pad+(t.x-minX)*scale,y:h-(pad+(t.y-minY)*scale)}};
+      }
+
+      function moveReachFromCanvas(x,y){
+        const cv=els.courseCanvas, g=state.geometry; if(!cv._projector || !g.wlA) return;
+        const anchor=gateMid(g.wlA,g.wlB)||g.wlA, wb=gateMid(g.wlA,g.wlB)&&gateMid(g.wwA,g.wwB)?bearingDeg(gateMid(g.wlA,g.wlB),gateMid(g.wwA,g.wwB)):0, rot=(0-wb)*Math.PI/180;
+        const pts=[g.rc,g.pin,g.wwA,g.wwB,g.wlA,g.wlB,g.reach].filter(Boolean).map(p=>rotate(toLocal(anchor,p).x,toLocal(anchor,p).y,rot));
+        const r=cv.getBoundingClientRect(), xs=pts.map(p=>p.x), ys=pts.map(p=>p.y), minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys), pad=26;
+        const scale=Math.min((r.width-pad*2)/Math.max(1,maxX-minX),(r.height-pad*2)/Math.max(1,maxY-minY));
+        const rx=((x-pad)/scale)+minX, ry=(((r.height-y)-pad)/scale)+minY, un=rotate(rx,ry,-rot), moved=fromLocal(anchor,un.x,un.y);
+        state.geometry.reach={...moved,confidence:"Manual"}; computeAnalysis(); renderReplay(); renderAnalysis();
+      }
+
+      function eventPoint(ev,cv){ const r=cv.getBoundingClientRect(); const t=ev.touches&&ev.touches[0]; const x=(t?t.clientX:ev.clientX)-r.left, y=(t?t.clientY:ev.clientY)-r.top; return {x,y}; }
+      function drawLine(ctx,p,a,b,c,w){ if(!a||!b) return; const A=p(a),B=p(b); ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke(); }
+      function mark(ctx,p,m,c,label){ if(!m) return; const q=p(m); ctx.beginPath();ctx.arc(q.x,q.y,6,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.fillStyle="#eaf3ff";ctx.font="12px sans-serif";ctx.fillText(label,q.x+8,q.y-8); }
+
+      function midpoint(a,b){return{lat:(a.lat+b.lat)/2,lon:(a.lon+b.lon)/2}}; const gateMid=(a,b)=>a&&b?midpoint(a,b):null;
+      function toLocal(o,p){const R=6371000,dLat=(p.lat-o.lat)*Math.PI/180,dLon=(p.lon-o.lon)*Math.PI/180,x=dLon*Math.cos((p.lat+o.lat)*Math.PI/360)*R,y=dLat*R;return{x,y}}
+      function fromLocal(o,x,y){const R=6371000,lat=o.lat+(y/R)*180/Math.PI,lon=o.lon+(x/(R*Math.cos((lat+o.lat)*Math.PI/360)))*180/Math.PI;return{lat,lon}}
+      function distanceMeters(a,b){const p=toLocal(a,b);return Math.hypot(p.x,p.y)}
+      function bearingDeg(a,b){const p=toLocal(a,b);return(Math.atan2(p.x,p.y)*180/Math.PI+360)%360}
+      function rotate(x,y,r){return{x:x*Math.cos(r)-y*Math.sin(r),y:x*Math.sin(r)+y*Math.cos(r)}}
+      function signedAngle(a,b){return((b-a+540)%360)-180}
+      function formatEventTime(ms){const d=new Date(ms+state.config.timezoneOffsetMinutes*60000);const Y=d.getUTCFullYear(),M=String(d.getUTCMonth()+1).padStart(2,"0"),D=String(d.getUTCDate()).padStart(2,"0"),h=String(d.getUTCHours()).padStart(2,"0"),m=String(d.getUTCMinutes()).padStart(2,"0"),s=String(d.getUTCSeconds()).padStart(2,"0");return`${Y}-${M}-${D} ${h}:${m}:${s} (${state.config.timezoneRaw||"UTC"})`}
+      function conf(ok){return ok?"Measured":"Low confidence"} function fmt(v){return(v==null||Number.isNaN(v))?"N/A":Number(v).toFixed(Math.abs(v)>=100?0:1)} function cap(s){return s[0].toUpperCase()+s.slice(1)}
+
+      return {init};
+    })();
+    window.addEventListener("load",App.init);
       function deriveGeometry(points) {
         const marksByKind = { rc: [], pin: [], ww: [], wl: [], reach: [] };
         points.filter(p => p.type === "mark").forEach(m => marksByKind[m.kind]?.push(m));
