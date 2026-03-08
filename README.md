@@ -1,6 +1,6 @@
-# M32 Tactical Replay Tool
+# M32 Tactical Tool
 
-A lightweight browser-based **tactical analysis and replay tool for
+A lightweight browser-based **tactical live and replay tool for
 sailing races** using **Vakaros RaceSense telemetry**.
 
 This tool allows sailors and coaches to replay race sessions, visualize
