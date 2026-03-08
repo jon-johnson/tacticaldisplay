@@ -1,2247 +1,848 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>M32 TACTICAL</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#050a10;--bg2:#0b1520;--bg3:#101e30;--bg4:#162540;
-  --text:#d8e8f4;--muted:#6080a0;--muted2:#253850;
-  --cyan:#00d4ff;--green:#00ff88;--orange:#ff8800;--red:#ff3355;--yellow:#ffd000;
-  --purple:#9d7fff;--pink:#ff6eb4;
-  --accent:#00d4ff;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px}
-input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;border:none;outline:none}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tactical Sailing Replay</title>
+  <style>
+    :root {
+      --bg: #0a1322;
+      --panel: #101d31;
+      --panel-2: #172740;
+      --text: #e9f2ff;
+      --muted: #9cb4d3;
+      --accent: #4ec7ff;
+      --ok: #2dd4bf;
+      --warn: #f59e0b;
+      --error: #ef4444;
+      --radius: 14px;
+      --space: 12px;
+      --touch: 44px;
+      --font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
-/* ── APP SHELL ── */
-#app{display:flex;flex-direction:column;height:100%;max-height:100dvh}
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: linear-gradient(160deg, #070d18, #0f1f37 45%, #0c1b2f);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
 
-/* ── HEADER ── */
-#hdr{background:var(--bg2);border-bottom:1px solid var(--muted2);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;z-index:200}
-#hdr-logo{font-family:Orbitron,monospace;font-weight:900;font-size:14px;color:var(--cyan);letter-spacing:3px}
-#hdr-sub{font-size:9px;color:var(--muted);letter-spacing:1px;flex:1}
-#hdr-status{display:flex;align-items:center;gap:6px;font-size:9px}
-.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
-.pulse-dot.warn{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
-.pulse-dot.err{background:var(--red);box-shadow:0 0 6px var(--red);animation:none}
-.pulse-dot.idle{background:var(--muted);box-shadow:none;animation:none}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      min-height: 100%;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-/* ── SETUP PANEL ── */
-#setup-overlay{position:fixed;inset:0;background:rgba(5,10,16,.97);z-index:500;display:flex;align-items:stretch;justify-content:center;padding:0;overflow:hidden}
-#setup-overlay.hidden{display:none}
-.setup-scroll{width:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 16px) 14px calc(env(safe-area-inset-bottom,0px) + 18px)}
-.setup-wrap{width:100%;max-width:420px;margin:0 auto;display:flex;flex-direction:column;align-items:stretch}
-.setup-logo{font-family:Orbitron,monospace;font-weight:900;font-size:22px;color:var(--cyan);letter-spacing:4px;margin:0 0 4px;text-align:center}
-.setup-sub{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:20px;text-align:center}
-.setup-card{background:var(--bg2);border:1px solid var(--muted2);border-radius:8px;padding:18px 20px;width:100%;max-width:420px;margin-bottom:14px}
-.setup-card-title{font-family:Orbitron,monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:12px}
-.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
-.field:last-child{margin-bottom:0}
-.field label{font-size:9px;color:var(--muted);letter-spacing:1px}
-.field input,.field select{background:var(--bg3);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:9px 11px;width:100%;font-size:12px;transition:border-color .15s}
-.field input:focus,.field select:focus{border-color:var(--cyan)}
-.field input::placeholder{color:var(--muted2)}
-.btn-primary{background:var(--cyan);touch-action:manipulation;color:#050a10;font-family:Orbitron,monospace;font-weight:700;font-size:11px;letter-spacing:2px;padding:12px 24px;border-radius:4px;cursor:pointer;width:100%;max-width:420px;transition:opacity .15s}
-.btn-primary:hover{opacity:.85}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.setup-note{font-size:9px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6;max-width:420px}
-.setup-actions{position:sticky;bottom:0;z-index:2;padding-top:8px;background:linear-gradient(to top, rgba(5,10,16,.98) 60%, rgba(5,10,16,0))}
-.setup-actions .btn-primary{max-width:none;box-shadow:0 8px 24px rgba(0,212,255,.16)}
-textarea.cfg-input{background:var(--bg3);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:9px 11px;width:100%;font-size:12px;transition:border-color .15s}
-textarea.cfg-input:focus{border-color:var(--cyan)}
-@media (min-height:760px){
-  #setup-overlay{padding:20px}
-  .setup-scroll{padding:calc(env(safe-area-inset-top,0px) + 8px) 0 calc(env(safe-area-inset-bottom,0px) + 8px);display:flex;align-items:center;justify-content:center}
-}
+    .topbar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: rgba(16, 29, 49, 0.7);
+      border: 1px solid #1f3352;
+      border-radius: 999px;
+      padding: 4px;
+      position: sticky;
+      top: 8px;
+      backdrop-filter: blur(4px);
+      z-index: 50;
+    }
 
-/* ── TAB BAR ── */
-#tabbar{display:flex;background:var(--bg2);border-bottom:1px solid var(--muted2);flex-shrink:0}
-.tab{flex:1;padding:11px 4px;text-align:center;font-family:Orbitron,monospace;font-size:8px;font-weight:700;letter-spacing:1px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
-.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
-.tab .tab-icon{font-size:14px;display:block;margin-bottom:2px}
+    .tab-btn {
+      height: var(--touch);
+      border: 0;
+      border-radius: 999px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      color: var(--text);
+      background: #23446e;
+    }
 
-/* ── CONTENT AREA ── */
-#content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-.panel{display:none;padding:12px 12px 80px}
-.panel.active{display:block}
+    .panel {
+      background: rgba(16, 29, 49, 0.88);
+      border: 1px solid #1f3352;
+      border-radius: var(--radius);
+      padding: 14px;
+    }
 
-/* ── LOADING STATE ── */
-#loading-bar{height:2px;background:var(--cyan);position:fixed;top:0;left:0;z-index:1000;transition:width .3s;width:0}
+    .mode { display: none; }
+    .mode.active { display: block; }
 
-/* ── SECTION HEADER ── */
-.sh{font-family:Orbitron,monospace;font-size:8px;font-weight:700;color:var(--muted);letter-spacing:2px;padding:10px 0 6px;border-bottom:1px solid var(--muted2);margin-bottom:8px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
-.sh-badge{font-family:Orbitron,monospace;font-size:7px;background:var(--bg3);border:1px solid var(--muted2);border-radius:2px;padding:2px 5px;color:var(--muted)}
+    h1, h2, h3, p { margin: 0; }
+    h2 { font-size: 1.1rem; margin-bottom: 10px; }
 
-/* ── METRIC CARDS ── */
-.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.priority-stack{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
-.hero-card .mc-val{font-size:24px}
-.hero-card .mc-sub{font-size:9px}
-.serial-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.serial-chip{background:var(--bg3);border:1px solid var(--muted2);border-radius:999px;padding:6px 8px;font-size:10px;color:var(--text)}
-.serial-note{font-size:8px;color:var(--muted);line-height:1.5;margin-top:8px}
-.card-grid.three{grid-template-columns:1fr 1fr 1fr}
-.card-grid.one{grid-template-columns:1fr}
-.mcard{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;padding:10px 12px;position:relative;overflow:hidden}
-.mcard.highlight{border-color:var(--cyan);background:rgba(0,212,255,.06)}
-.mcard.good{border-color:var(--green);background:rgba(0,255,136,.05)}
-.mcard.warn{border-color:var(--yellow);background:rgba(255,208,0,.05)}
-.mcard.bad{border-color:var(--red);background:rgba(255,51,85,.05)}
-.mc-lbl{font-size:8px;color:var(--muted);letter-spacing:1px;margin-bottom:4px}
-.mc-val{font-family:Orbitron,monospace;font-size:18px;font-weight:700;color:var(--cyan);line-height:1.1}
-.mc-val.big{font-size:22px}
-.mc-val.med{font-size:15px}
-.mc-val.sm{font-size:12px}
-.mc-sub{font-size:8px;color:var(--muted);margin-top:3px}
-.mc-accent{position:absolute;top:0;left:0;width:3px;height:100%;background:var(--cyan);border-radius:6px 0 0 6px}
-.mc-accent.green{background:var(--green)}
-.mc-accent.orange{background:var(--orange)}
-.mc-accent.red{background:var(--red)}
-.mc-accent.yellow{background:var(--yellow)}
-.mc-accent.purple{background:var(--purple)}
+    .stack { display: grid; gap: 10px; }
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+    label { font-size: 0.85rem; color: var(--muted); }
 
-/* ── BIAS BAR ── */
-.bias-bar-wrap{margin:4px 0 2px;display:flex;align-items:center;gap:6px;font-size:8px;color:var(--muted)}
-.bias-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;position:relative}
-.bias-fill{height:100%;border-radius:2px;transition:width .4s}
-.bias-label{min-width:32px;text-align:right}
+    input, textarea, select {
+      width: 100%;
+      background: #0d1a2e;
+      color: var(--text);
+      border: 1px solid #2a466e;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 1rem;
+      min-height: var(--touch);
+    }
 
-/* ── OPT START VISUAL ── */
-#opt-line-wrap{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;padding:10px 12px;margin-bottom:10px}
-.opt-line-svg-row{display:flex;align-items:center;gap:8px;margin-top:8px}
-.opt-label-rc{font-size:8px;color:var(--muted);white-space:nowrap}
-.opt-label-pin{font-size:8px;color:var(--muted);white-space:nowrap}
-#opt-svg{flex:1;height:20px}
+    textarea { min-height: 96px; resize: vertical; }
+    .helper { font-size: 0.78rem; color: var(--muted); }
+    .error { color: var(--error); font-size: 0.82rem; }
 
-/* ── WIND SECTION ── */
-.wind-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.wind-arrow{width:44px;height:44px;flex-shrink:0}
-.wind-stats{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.ws{background:var(--bg2);border:1px solid var(--muted2);border-radius:4px;padding:6px 8px}
-.ws-v{font-family:Orbitron,monospace;font-size:13px;color:var(--cyan)}
-.ws-l{font-size:7px;color:var(--muted);margin-top:1px}
+    .sticky-actions {
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(to top, rgba(10, 19, 34, 0.95), rgba(10, 19, 34, 0.6));
+      padding-top: 10px;
+      margin-top: 10px;
+    }
 
-/* ── MANUAL WIND OVERRIDE ── */
-.wind-override{background:var(--bg3);border:1px solid var(--muted2);border-radius:6px;padding:10px 12px;margin-bottom:10px}
-.wo-row{display:flex;gap:8px;align-items:flex-end}
-.wo-field{flex:1;display:flex;flex-direction:column;gap:4px}
-.wo-label{font-size:8px;color:var(--muted);letter-spacing:1px}
-.wo-input{background:var(--bg);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:7px 9px;width:100%;font-size:12px}
-.wo-input:focus{border-color:var(--cyan)}
-.wo-btn{background:var(--cyan);color:#050a10;font-family:Orbitron,monospace;font-size:8px;font-weight:700;padding:7px 12px;border-radius:4px;cursor:pointer;white-space:nowrap;letter-spacing:1px}
-.wo-btn.clear{background:transparent;color:var(--muted);border:1px solid var(--muted2)}
-.wo-source{font-size:8px;color:var(--green);margin-top:4px}
-.wo-source.auto{color:var(--muted)}
+    .btn {
+      min-height: var(--touch);
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: #041423;
+      font-weight: 700;
+      background: var(--accent);
+      cursor: pointer;
+    }
+    .btn.secondary {
+      background: #1e3a5f;
+      color: var(--text);
+    }
 
-/* ── REACH MARK SECTION ── */
-.rm-section{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;padding:10px 12px;margin-bottom:10px}
-.rm-btn-row{display:flex;gap:8px;margin-bottom:8px}
-.rm-btn{flex:1;background:var(--bg3);border:1px solid var(--muted2);color:var(--muted);font-family:Orbitron,monospace;font-size:8px;font-weight:700;padding:9px 6px;border-radius:4px;cursor:pointer;letter-spacing:1px;transition:all .15s;text-align:center}
-.rm-btn.active{background:rgba(0,212,255,.15);border-color:var(--cyan);color:var(--cyan)}
-.rm-coords{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
-.rm-coord-input{background:var(--bg);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:7px 9px;width:100%;font-size:11px}
-.rm-coord-input:focus{border-color:var(--cyan)}
-.rm-set-btn{background:var(--orange);color:#050a10;font-family:Orbitron,monospace;font-size:9px;font-weight:700;padding:8px 14px;border-radius:4px;cursor:pointer;letter-spacing:1px;width:100%;margin-top:6px;text-align:center}
-.rm-status{font-size:8px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px}
-.rm-dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
-.rm-dot.set{background:var(--green)}
-.rm-dot.gps{background:var(--cyan)}
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .row .btn { flex: 1; min-width: 70px; }
 
-/* ── MAP CANVAS ── */
-#map-canvas{display:block;background:var(--bg);border-radius:6px}
-.map-wrap{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;overflow:hidden;margin-bottom:10px;position:relative;max-height:calc(100dvh - 240px)}
-.map-wrap canvas{width:100%;display:block;touch-action:none}
-.map-overlay{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
-.map-badge{background:rgba(11,21,32,.8);border:1px solid var(--muted2);border-radius:3px;padding:3px 6px;font-size:7px;color:var(--muted);font-family:Orbitron,monospace;letter-spacing:1px}
-.map-tap-hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:8px;color:var(--muted);pointer-events:none}
+    .status {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
 
-/* ── HISTORY TABLE ── */
-.hist-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px}
-.hist-table th{font-family:Orbitron,monospace;font-size:7px;color:var(--muted);letter-spacing:1px;padding:5px 8px;border-bottom:1px solid var(--muted2);text-align:left;background:var(--bg3)}
-.hist-table td{padding:5px 8px;border-bottom:1px solid rgba(37,56,80,.5)}
-.hist-table tr:hover td{background:var(--bg3)}
-.hist-race-num{font-family:Orbitron,monospace;font-size:9px;color:var(--yellow)}
-.bias-cell{display:flex;align-items:center;gap:4px}
-.b-rc{color:var(--cyan)}
-.b-pin{color:var(--orange)}
-.b-neu{color:var(--muted)}
+    .replay-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+    }
+    canvas {
+      width: 100%;
+      height: min(58vh, 520px);
+      display: block;
+      border-radius: 12px;
+      border: 1px solid #2b456d;
+      background: radial-gradient(circle at center, #14345a, #0b1b31 75%);
+      touch-action: none;
+    }
 
-/* ── CONFIG SECTION (settings panel) ── */
-.cfg-section{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;padding:12px 14px;margin-bottom:10px}
-.cfg-title{font-family:Orbitron,monospace;font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:10px}
-.cfg-field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
-.cfg-field:last-child{margin-bottom:0}
-.cfg-label{font-size:8px;color:var(--muted);letter-spacing:1px}
-.cfg-input{background:var(--bg3);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:8px 10px;width:100%;font-size:11px}
-.cfg-input:focus{border-color:var(--cyan)}
-.cfg-row{display:flex;gap:8px}
-.cfg-row .cfg-field{flex:1}
-.cfg-save{background:var(--cyan);color:#050a10;font-family:Orbitron,monospace;font-size:9px;font-weight:700;padding:10px;border-radius:4px;cursor:pointer;width:100%;letter-spacing:2px;margin-top:4px}
-.cfg-reset{background:transparent;color:var(--red);border:1px solid rgba(255,51,85,.3);font-family:Orbitron,monospace;font-size:9px;font-weight:700;padding:8px;border-radius:4px;cursor:pointer;width:100%;letter-spacing:2px;margin-top:6px}
-.sn-row{display:flex;gap:6px;margin-bottom:6px}
-.sn-input{flex:1;background:var(--bg3);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:7px 9px;font-size:11px}
-.sn-label{font-size:8px;color:var(--muted);min-width:28px;display:flex;align-items:center}
-.poll-indicator{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--muted);margin-top:8px}
-.poll-time{color:var(--cyan)}
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .metric-card {
+      background: var(--panel-2);
+      border: 1px solid #2a466f;
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 5px;
+    }
+    .metric-value { font-size: 1.5rem; font-weight: 800; }
+    .metric-label { color: #c9dcf6; font-weight: 600; }
+    .metric-sub { color: var(--muted); font-size: 0.85rem; }
 
-/* ── EMPTY STATE ── */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;gap:12px;text-align:center}
-.empty-icon{font-size:36px;opacity:.4}
-.empty-title{font-family:Orbitron,monospace;font-size:11px;color:var(--muted);letter-spacing:2px}
-.empty-sub{font-size:10px;color:var(--muted2);line-height:1.6;max-width:280px}
+    .chip {
+      display: inline-block;
+      width: fit-content;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border: 1px solid #355b8f;
+      color: #bdd6fa;
+      background: #102641;
+    }
 
-/* ── DRIFT ALERT ── */
-.drift-alert{background:rgba(255,208,0,.08);border:1px solid rgba(255,208,0,.3);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:10px;display:flex;gap:8px;align-items:center}
-.drift-alert.hidden{display:none}
-
-/* ── UTIL ── */
-.good{color:var(--green)}.warn-c{color:var(--yellow)}.bad{color:var(--red)}
-.tag{font-family:Orbitron,monospace;font-size:7px;padding:2px 5px;border-radius:2px;letter-spacing:.5px;border:1px solid}
-.tag.rc{color:var(--cyan);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.08)}
-.tag.pin{color:var(--orange);border-color:rgba(255,136,0,.3);background:rgba(255,136,0,.08)}
-.tag.ww{color:var(--green);border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.08)}
-.tag.lw{color:var(--purple);border-color:rgba(157,127,255,.3);background:rgba(157,127,255,.08)}
-.tag.opt{color:#050a10;background:var(--green);border-color:var(--green);font-weight:700}
-
-/* ── SPINNER ── */
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--muted2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── REFRESH BUTTON ── */
-#refresh-btn{position:fixed;bottom:72px;right:14px;width:46px;height:46px;border-radius:50%;background:var(--cyan);color:#050a10;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,212,255,.3);z-index:100;border:none;transition:transform .15s}
-#refresh-btn:active{transform:scale(.92)}
-#refresh-btn.spinning{animation:spin .7s linear infinite}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:2px}
-
-/* ── LAST UPDATE BANNER ── */
-#update-banner{background:var(--bg2);border-bottom:1px solid var(--muted2);padding:4px 12px;font-size:8px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-#update-banner.hidden{display:none}
-#replay-toolbar{background:var(--bg2);border-bottom:1px solid var(--muted2);padding:8px 12px;display:none;flex-direction:column;gap:8px;flex-shrink:0}
-#replay-toolbar.visible{display:flex}
-.replay-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.replay-label{font-size:8px;color:var(--muted)}
-.replay-time{font-family:Orbitron,monospace;font-size:11px;color:var(--cyan);letter-spacing:1px}
-.replay-controls{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:6px;align-items:center}
-.replay-btn{background:var(--bg3);border:1px solid var(--muted2);color:var(--text);border-radius:4px;padding:7px 10px;font-family:Orbitron,monospace;font-size:8px;letter-spacing:1px;cursor:pointer}
-.replay-btn:active{transform:scale(.98)}
-#replay-slider{width:100%}
-#replay-range{font-size:8px;color:var(--muted);text-align:right}
-
-@media (min-width:500px){
-  .card-grid{grid-template-columns:1fr 1fr 1fr}
-  .mc-val{font-size:20px}
-}
-@media(max-width:640px){
-  #tabbar{overflow-x:auto}
-  .tab{min-width:25%}
-  .card-grid,.card-grid.three{grid-template-columns:1fr}
-  .mcard{padding:12px 12px}
-  .mc-val.big{font-size:24px}
-  .mc-val.med{font-size:18px}
-  .mc-val.sm{font-size:15px}
-}
-</style>
+    @media (min-width: 900px) {
+      .replay-grid { grid-template-columns: 2fr 1fr; }
+      .analysis-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <nav class="topbar" id="topbar"></nav>
 
-<!-- SETUP OVERLAY -->
-<div id="setup-overlay">
-  <div class="setup-scroll">
-    <div class="setup-wrap">
-  <div class="setup-logo">M32 TACTICAL</div>
-  <div class="setup-sub">LIVE + REPLAY COURSE GEOMETRY</div>
+    <section id="setupMode" class="mode active">
+      <form id="setupForm" class="panel stack" novalidate>
+        <h2>Setup</h2>
+        <div class="field">
+          <label for="eventId">Event ID</label>
+          <input id="eventId" name="eventId" placeholder="e.g. tuesday-series-2026" required />
+        </div>
+        <div class="field">
+          <label for="tzOffset">Event timezone offset</label>
+          <input id="tzOffset" name="tzOffset" placeholder="UTC-5 / -5 / UTC+1" required />
+          <div class="helper">All times in Replay and Analysis are shown in this event timezone.</div>
+        </div>
+        <div class="field"><label for="rcSerials">RC serial(s)</label><input id="rcSerials" name="rcSerials" placeholder="comma separated" /></div>
+        <div class="field"><label for="pinSerials">Pin serial(s)</label><input id="pinSerials" name="pinSerials" placeholder="comma separated" /></div>
+        <div class="field"><label for="wwSerials">WW gate serial(s)</label><input id="wwSerials" name="wwSerials" placeholder="comma separated" /></div>
+        <div class="field"><label for="wlSerials">WL gate serial(s)</label><input id="wlSerials" name="wlSerials" placeholder="comma separated" /></div>
+        <div class="field">
+          <label for="gunTimes">Gun times</label>
+          <textarea id="gunTimes" name="gunTimes" placeholder="1,1763571840000&#10;2,1763573640000" required></textarea>
+          <div class="helper">One line per race in format <code>raceNumber,unixTimestamp</code>.</div>
+        </div>
+        <div class="panel" style="padding:10px;">
+          <div class="helper">Mode: replay-only (live mode can be added later).</div>
+          <div class="helper" id="detectedMarks">Detected marks: none loaded yet.</div>
+        </div>
+        <div id="setupErrors" class="error"></div>
+        <div class="sticky-actions">
+          <button class="btn" type="submit">Save setup and continue</button>
+        </div>
+      </form>
+    </section>
 
-  <form class="setup-card" id="setup-form">
-    <div class="setup-card-title">MODE</div>
-    <div class="field" style="margin-bottom:0">
-      <label>APP MODE</label>
-      <select id="setup-mode" class="cfg-input">
-        <option value="live">Live</option>
-        <option value="replay">Replay</option>
-      </select>
-    </div>
+    <section id="replayMode" class="mode">
+      <div class="replay-grid">
+        <div class="panel">
+          <canvas id="courseCanvas"></canvas>
+        </div>
+        <div class="panel stack">
+          <h2>Replay</h2>
+          <div class="field">
+            <label for="raceSelect">Race</label>
+            <select id="raceSelect"></select>
+          </div>
+          <div class="field">
+            <label for="scrubber">Replay scrubber</label>
+            <input type="range" id="scrubber" min="0" max="100" step="1" />
+          </div>
+          <div id="cursorTime" class="status"></div>
+          <div class="row">
+            <button class="btn secondary" id="back5m">-5m</button>
+            <button class="btn secondary" id="back30s">-30s</button>
+            <button class="btn secondary" id="fwd30s">+30s</button>
+            <button class="btn secondary" id="fwd5m">+5m</button>
+          </div>
+          <button class="btn secondary" id="playPause">Play</button>
+          <div id="replayStatus" class="status">No replay data loaded.</div>
+          <div class="helper">Tap/click map to manually move reach mark.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="analysisMode" class="mode">
+      <div class="panel stack">
+        <h2>Analysis</h2>
+        <div id="analysisCards" class="analysis-grid"></div>
+      </div>
+    </section>
   </div>
 
-  <div class="setup-card">
-    <div class="setup-card-title">VAKAROS RACE SENSE EVENT</div>
-    <div class="field">
-      <label>RACESENSE URL OR EVENT ID</label>
-      <input id="setup-url" type="text" placeholder="https://racesense.app/watch/EVENT_ID/M32 or just EVENT_ID" autocorrect="off" autocapitalize="off" spellcheck="false">
-    </div>
-    <div class="field">
-      <label>RACE DAY NUMBER</label>
-      <input id="setup-raceday" type="number" placeholder="1" min="1" max="20" value="1">
-    </div>
-    <div class="field" style="margin-bottom:0">
-      <label>EVENT TIMEZONE OFFSET</label>
-      <input id="setup-tzoffset" type="text" placeholder="UTC-5" value="UTC+0" list="tz-presets" autocorrect="off" autocapitalize="off" spellcheck="false">
-      <datalist id="tz-presets">
-        <option value="UTC-12"></option>
-        <option value="UTC-8"></option>
-        <option value="UTC-5"></option>
-        <option value="UTC+0"></option>
-        <option value="UTC+1"></option>
-        <option value="UTC+2"></option>
-        <option value="UTC+8"></option>
-        <option value="UTC+10"></option>
-        <option value="UTC+12"></option>
-      </datalist>
-    </div>
-  </div>
+  <script>
+    const App = (() => {
+      const REPLAY_WINDOW = { beforeMs: 120000, afterMs: 30000 };
+      const MODE_ORDER = ["setup", "replay", "analysis"];
 
-  <div class="setup-card">
-    <div class="setup-card-title">REPLAY START TIMES</div>
-    <div class="field">
-      <label>GUN TIMES (one per line: race,unix_ms)</label>
-      <textarea id="setup-guns" class="cfg-input" rows="4" placeholder="1,1770397440000&#10;2,1770399240000" style="resize:vertical;min-height:86px"></textarea>
-    </div>
-  </div>
+      const state = {
+        ui: { mode: "setup", isPlaying: false, errors: [] },
+        config: {
+          eventId: "",
+          timezoneOffsetMinutes: 0,
+          timezoneRaw: "UTC",
+          serials: { rc: [], pin: [], ww: [], wl: [] },
+          gunTimes: []
+        },
+        telemetry: { points: [], detectedMarks: [] },
+        replay: {
+          selectedRace: null,
+          cursorTimeMs: null,
+          window: { ...REPLAY_WINDOW },
+          activePoints: [],
+          raceWindow: { startMs: null, endMs: null }
+        },
+        geometry: {
+          rc: null, pin: null, wwA: null, wwB: null, wlA: null, wlB: null,
+          reach: null, midpoint: null, courseAxisDeg: null, gateAxisDeg: null
+        },
+        analysis: { metrics: [] }
+      };
 
-  <div class="setup-card">
-    <div class="setup-card-title">MARK SERIAL NUMBERS</div>
-    <div style="font-size:8px;color:var(--muted);margin-bottom:10px;line-height:1.6">Enter buoy serial numbers for this venue. Find by inspecting raw telemetry (role='mark'). Separate multiple with commas.</div>
-    <div class="field">
-      <label>WW GATE SNs (windward pair)</label>
-      <input id="setup-ww" type="text" placeholder="10000, 10001" autocorrect="off">
-    </div>
-    <div class="field">
-      <label>LW GATE SNs (leeward pair)</label>
-      <input id="setup-lw" type="text" placeholder="10002, 10003" autocorrect="off">
-    </div>
-    <div class="field">
-      <label>RC BOAT SNs</label>
-      <input id="setup-rc" type="text" placeholder="10004, 10005" autocorrect="off">
-    </div>
-    <div class="field" style="margin-bottom:0">
-      <label>PIN BUOY SN</label>
-      <input id="setup-pin" type="text" placeholder="10006" autocorrect="off">
-    </div>
-  </div>
+      const els = {};
 
-  <div class="setup-actions">
-    <button class="btn-primary" id="setup-btn" type="submit">START TACTICAL VIEW</button>
-    <div class="setup-note" id="setup-error" style="color:var(--red);display:none"></div>
-    <div class="setup-note">Live mode polls the current window. Replay mode uses your gun times and lets you load old races.</div>
-  </div>
-    </form>
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" style="display:none">
-  <!-- Loading bar -->
-  <div id="loading-bar"></div>
-
-  <!-- Header -->
-  <div id="hdr">
-    <div>
-      <div id="hdr-logo">M32 TACTICAL</div>
-      <div id="hdr-sub">—</div>
-    </div>
-    <div id="hdr-status">
-      <div id="status-dot" class="pulse-dot idle"></div>
-      <span id="status-text" style="font-size:8px;color:var(--muted)">IDLE</span>
-    </div>
-  </div>
-
-  <!-- Update banner -->
-  <div id="update-banner" class="hidden">
-    <span id="last-update-text">Last update: —</span>
-    <span id="poll-countdown" style="color:var(--cyan)"></span>
-  </div>
-
-  <div id="replay-toolbar">
-    <div class="replay-top">
-      <span class="replay-label">REPLAY CURSOR</span>
-      <span class="replay-time" id="replay-cursor-label">—</span>
-    </div>
-    <div class="replay-controls">
-      <button class="replay-btn" id="replay-back-big">−5M</button>
-      <button class="replay-btn" id="replay-back-small">−30S</button>
-      <input type="range" id="replay-slider" min="0" max="100" value="0" step="1">
-      <button class="replay-btn" id="replay-fwd-small">+30S</button>
-      <button class="replay-btn" id="replay-fwd-big">+5M</button>
-    </div>
-    <div id="replay-range">—</div>
-  </div>
-
-  <!-- Tab bar -->
-  <div id="tabbar">
-    <div class="tab active" data-panel="data" onclick="switchTab('data')">
-      <span class="tab-icon">⎋</span>DATA
-    </div>
-    <div class="tab" data-panel="map" onclick="switchTab('map')">
-      <span class="tab-icon">◎</span>MAP
-    </div>
-    <div class="tab" data-panel="wind" onclick="switchTab('wind')">
-      <span class="tab-icon">⇡</span>WIND
-    </div>
-    <div class="tab" data-panel="settings" onclick="switchTab('settings')">
-      <span class="tab-icon">⚙</span>CONFIG
-    </div>
-  </div>
-
-  <!-- Content -->
-  <div id="content">
-
-    <!-- DATA PANEL -->
-    <div class="panel active" id="panel-data">
-
-      <div class="sh">PRIMARY OUTPUTS</div>
-      <div class="priority-stack">
-        <div id="opt-line-wrap" class="hero-card">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-            <div>
-              <div class="mc-lbl">1. START LINE OPTIMAL POINT</div>
-              <div style="font-family:Orbitron,monospace;font-size:22px;color:var(--green)" id="opt-pos">—</div>
-              <div class="mc-sub" id="opt-pos-sub">best spot on the line</div>
-            </div>
-            <div style="text-align:right;min-width:140px">
-              <div class="mc-lbl">RC END PENALTY</div>
-              <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--cyan)" id="opt-rc-pen">—</div>
-              <div class="mc-lbl" style="margin-top:4px">PIN END PENALTY</div>
-              <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--orange)" id="opt-pin-pen">—</div>
-            </div>
-          </div>
-          <div style="margin-top:8px"><span class="sh-badge" id="opt-badge">NEEDS WIND + RM</span></div>
-          <div class="opt-line-svg-row">
-            <span class="opt-label-rc"><span class="tag rc">RC</span></span>
-            <svg id="opt-svg" viewBox="0 0 300 20" preserveAspectRatio="none">
-              <line x1="0" y1="10" x2="300" y2="10" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
-              <text id="opt-no-data" x="150" y="13" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(120,160,200,.5)">set reach mark + wind to compute</text>
-            </svg>
-            <span class="opt-label-pin"><span class="tag pin">PIN</span></span>
-          </div>
-        </div>
-
-        <div class="mcard hero-card">
-          <div class="mc-accent purple"></div>
-          <div class="mc-lbl">2. WL GATE BIAS</div>
-          <div class="mc-val big" id="val-lw-bias-main">—</div>
-          <div class="mc-sub" id="val-lw-bias-sub-main">needs wind + LW gate</div>
-        </div>
-
-        <div class="card-grid three" style="margin-bottom:0">
-          <div class="mcard">
-            <div class="mc-accent"></div>
-            <div class="mc-lbl">4. RC → REACH MARK</div>
-            <div class="mc-val sm" id="val-rc-rm">—</div>
-            <div class="mc-sub">metres</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent orange"></div>
-            <div class="mc-lbl">4. PIN → REACH MARK</div>
-            <div class="mc-val sm" id="val-pin-rm">—</div>
-            <div class="mc-sub">metres</div>
-          </div>
-          <div class="mcard" id="card-rm-diff">
-            <div class="mc-accent" id="rm-diff-accent"></div>
-            <div class="mc-lbl">4. DIFFERENCE</div>
-            <div class="mc-val sm" id="val-rm-diff">—</div>
-            <div class="mc-sub" id="val-rm-diff-sub">RC vs PIN to RM</div>
-          </div>
-        </div>
-
-        <div class="mcard hero-card">
-          <div class="mc-accent orange"></div>
-          <div class="mc-lbl">5. TWA FROM START MIDPOINT TO REACH MARK</div>
-          <div class="mc-val big" id="val-reach-twa-main">—</div>
-          <div class="mc-sub" id="val-reach-leg-sub-main">reach geometry pending</div>
-        </div>
-
-        <div class="mcard hero-card">
-          <div class="mc-accent green"></div>
-          <div class="mc-lbl">5. WW GATE BIAS</div>
-          <div class="mc-val big" id="val-ww-bias-main">—</div>
-          <div class="mc-sub" id="val-ww-bias-sub-main">needs wind + WW gate</div>
-        </div>
-
-        <div class="card-grid" style="margin-bottom:0">
-          <div class="mcard highlight">
-            <div class="mc-accent"></div>
-            <div class="mc-lbl">6. COURSE AXIS</div>
-            <div class="mc-val med" id="val-axis">—</div>
-            <div class="mc-sub" id="val-axis-sub">LW → WW bearing</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent yellow"></div>
-            <div class="mc-lbl">6. START LINE AXIS</div>
-            <div class="mc-val med" id="val-sl-axis">—</div>
-            <div class="mc-sub" id="val-sl-length">length —</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent green"></div>
-            <div class="mc-lbl">6. WW GATE AXIS</div>
-            <div class="mc-val med" id="val-ww-axis">—</div>
-            <div class="mc-sub" id="val-ww-bias">bias —</div>
-          </div>
-          <div class="mcard">
-            <div class="mc-accent purple"></div>
-            <div class="mc-lbl">6. WL GATE AXIS</div>
-            <div class="mc-val med" id="val-lw-axis">—</div>
-            <div class="mc-sub" id="val-lw-bias">bias —</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="sh">REACH MARK</div>
-      <div class="rm-section" style="margin-bottom:10px">
-        <div class="sh" style="margin-bottom:8px">REACH MARK <span class="sh-badge" id="rm-source-badge">NOT SET</span></div>
-        <div class="rm-btn-row">
-          <div class="rm-btn active" id="rm-gps-btn" onclick="setRMMode('gps')">📍 GPS PING</div>
-          <div class="rm-btn" id="rm-manual-btn" onclick="setRMMode('manual')">✎ MANUAL ENTRY</div>
-        </div>
-        <div id="rm-gps-section">
-          <button class="rm-set-btn" onclick="gpsSnapRM()" id="gps-snap-btn">TAP AT REACH MARK → SET POSITION</button>
-        </div>
-        <div id="rm-manual-section" style="display:none">
-          <div class="rm-coords">
-            <input class="rm-coord-input" id="rm-lat" type="number" placeholder="Lat e.g. 25.7617" step="0.00001" autocorrect="off">
-            <input class="rm-coord-input" id="rm-lon" type="number" placeholder="Lon e.g. -80.1918" step="0.00001" autocorrect="off">
-          </div>
-          <div class="rm-set-btn" onclick="setManualRM()">SET REACH MARK</div>
-        </div>
-        <div class="rm-status">
-          <div class="rm-dot" id="rm-dot"></div>
-          <span id="rm-status-text">Not set — tap GPS button at the mark</span>
-        </div>
-      </div>
-
-      <div class="drift-alert hidden" id="drift-alert">
-        ⚠ <span id="drift-text">Mark drift detected</span>
-      </div>
-    </div>
-
-    <!-- MAP PANEL -->
-    <div class="panel" id="panel-map">
-      <div class="sh" style="margin-bottom:8px">COURSE MAP <span class="sh-badge">WW AT TOP · AXIS-UP</span></div>
-      <div class="drift-alert hidden" id="drift-alert-map">
-        ⚠ <span id="drift-text-map"></span>
-      </div>
-      <div class="map-wrap" id="map-wrap" style="margin-bottom:10px">
-        <canvas id="map-canvas" width="600" height="900"></canvas>
-        <div class="map-overlay">
-          <div class="map-badge" id="map-scale-badge">— m</div>
-        </div>
-        <div class="map-tap-hint" id="map-tap-hint">TAP TO SET REACH MARK</div>
-      </div>
-      <!-- Quick stats under map -->
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-lbl">COURSE AXIS</div>
-          <div class="mc-val sm" id="map-axis">—</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-lbl">LINE BIAS</div>
-          <div class="mc-val sm" id="map-bias">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- WIND PANEL -->
-    <div class="panel" id="panel-wind">
-      <div class="sh">WIND DIRECTION</div>
-
-      <!-- Manual override -->
-      <div class="wind-override">
-        <div class="sh" style="margin-bottom:8px;border-bottom:none;padding-bottom:0">MANUAL OVERRIDE</div>
-        <div class="wo-row">
-          <div class="wo-field">
-            <div class="wo-label">TRUE WIND DIR (°)</div>
-            <input class="wo-input" id="wind-manual-dir" type="number" placeholder="e.g. 315" min="0" max="360" step="1" autocorrect="off">
-          </div>
-          <div class="wo-field">
-            <div class="wo-label">TWS (kts)</div>
-            <input class="wo-input" id="wind-manual-spd" type="number" placeholder="e.g. 12" min="1" max="40" step="0.5" autocorrect="off">
-          </div>
-          <button class="wo-btn" onclick="applyManualWind()">SET</button>
-          <button class="wo-btn clear" onclick="clearManualWind()">CLR</button>
-        </div>
-        <div class="wo-source" id="wind-source-label">No wind set</div>
-      </div>
-
-      <!-- Auto-inferred -->
-      <div class="sh" style="margin-top:4px">AUTO-INFERRED FROM TRACKS</div>
-      <div class="wind-row">
-        <svg class="wind-arrow" viewBox="0 0 44 44" id="wind-arrow-svg">
-          <circle cx="22" cy="22" r="20" fill="none" stroke="rgba(37,56,80,.8)" stroke-width="1.5"/>
-          <text x="22" y="8" text-anchor="middle" font-family="Share Tech Mono" font-size="5" fill="rgba(96,128,160,.6)">N</text>
-          <text x="36" y="25" text-anchor="middle" font-family="Share Tech Mono" font-size="5" fill="rgba(96,128,160,.6)">E</text>
-          <text x="22" y="39" text-anchor="middle" font-family="Share Tech Mono" font-size="5" fill="rgba(96,128,160,.6)">S</text>
-          <text x="8" y="25" text-anchor="middle" font-family="Share Tech Mono" font-size="5" fill="rgba(96,128,160,.6)">W</text>
-          <g id="wind-arrow-g" transform="translate(22,22) rotate(0)">
-            <polygon points="0,-13 3,5 0,2 -3,5" fill="var(--cyan)" opacity="0.8"/>
-          </g>
-        </svg>
-        <div class="wind-stats">
-          <div class="ws"><div class="ws-v" id="wind-dir-auto">—</div><div class="ws-l">AUTO TWD</div></div>
-          <div class="ws"><div class="ws-v" id="wind-dir-eff">—</div><div class="ws-l">EFF TWD</div></div>
-          <div class="ws"><div class="ws-v" id="wind-tws">—</div><div class="ws-l">TWS kts</div></div>
-          <div class="ws"><div class="ws-v" id="wind-boat-count">—</div><div class="ws-l">BOATS USED</div></div>
-        </div>
-      </div>
-
-      <!-- TWA to reach mark -->
-      <div class="sh" style="margin-top:4px">TWA TO REACH MARK</div>
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-accent"></div>
-          <div class="mc-lbl">FROM RC END</div>
-          <div class="mc-val sm" id="twa-rc">—</div>
-          <div class="mc-sub" id="twa-rc-sub">from RC to RM</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-accent orange"></div>
-          <div class="mc-lbl">FROM PIN END</div>
-          <div class="mc-val sm" id="twa-pin">—</div>
-          <div class="mc-sub" id="twa-pin-sub">from PIN to RM</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-accent green"></div>
-          <div class="mc-lbl">FROM MID-LINE</div>
-          <div class="mc-val sm" id="twa-mid">—</div>
-          <div class="mc-sub" id="twa-mid-sub">mid-start to RM</div>
-        </div>
-      </div>
-
-      <!-- Polar speed at reach -->
-      <div class="sh">POLAR REACH SPEED</div>
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-accent purple"></div>
-          <div class="mc-lbl">POLAR SPEED</div>
-          <div class="mc-val sm" id="polar-reach-spd">—</div>
-          <div class="mc-sub" id="polar-reach-twa">at reach TWA</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-accent green"></div>
-          <div class="mc-lbl">VMG UPWIND</div>
-          <div class="mc-val sm" id="polar-vmg-up">—</div>
-          <div class="mc-sub" id="polar-vmg-up-twa">best VMG upwind</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SETTINGS PANEL -->
-    <div class="panel" id="panel-settings">
-      <div class="sh">EVENT CONFIGURATION</div>
-      <div class="cfg-section">
-        <div class="cfg-title">VAKAROS EVENT</div>
-        <div class="cfg-field">
-          <div class="cfg-label">EVENT ID</div>
-          <input class="cfg-input" id="cfg-eventid" autocorrect="off" autocapitalize="off" spellcheck="false">
-        </div>
-        <div class="cfg-row">
-          <div class="cfg-field">
-            <div class="cfg-label">RACE DAY</div>
-            <input class="cfg-input" id="cfg-raceday" type="number" min="1">
-          </div>
-          <div class="cfg-field">
-            <div class="cfg-label">DIVISION</div>
-            <input class="cfg-input" id="cfg-division" value="M32">
-          </div>
-        </div>
-        <div class="cfg-row">
-          <div class="cfg-field">
-            <div class="cfg-label">EVENT TZ OFFSET (e.g. UTC-5 or -5)</div>
-            <input class="cfg-input" id="cfg-tzoffset" value="UTC-5">
-          </div>
-          <div class="cfg-field">
-            <div class="cfg-label">MODE</div>
-            <select class="cfg-input" id="cfg-mode" onchange="onModeChange()">
-              <option value="live">Live</option>
-              <option value="replay">Replay</option>
-            </select>
-          </div>
-          <div class="cfg-field">
-            <div class="cfg-label">REPLAY RACE</div>
-            <select class="cfg-input" id="cfg-selected-race" onchange="setReplayRaceFromUI()">
-              <option value="">Auto / latest</option>
-            </select>
-          </div>
-        </div>
-        <div class="cfg-field">
-          <div class="cfg-label">GUN TIMES (unix ms, one per line, format: raceNum,timestamp)</div>
-          <textarea class="cfg-input" id="cfg-guns" rows="4" placeholder="1,1770397440000&#10;2,1770399240000" style="resize:vertical;line-height:1.5"></textarea>
-        </div>
-      </div>
-
-      <div class="sh">MARK SERIAL NUMBERS</div>
-      <div class="cfg-section">
-        <div class="cfg-title">VENUE BUOY SNs</div>
-        <div class="cfg-field">
-          <div class="cfg-label">WW GATE (comma-separated)</div>
-          <input class="cfg-input" id="cfg-ww" autocorrect="off">
-        </div>
-        <div class="cfg-field">
-          <div class="cfg-label">LW GATE (comma-separated)</div>
-          <input class="cfg-input" id="cfg-lw" autocorrect="off">
-        </div>
-        <div class="cfg-field">
-          <div class="cfg-label">RC BOAT SNs (comma-separated)</div>
-          <input class="cfg-input" id="cfg-rc" autocorrect="off">
-        </div>
-        <div class="cfg-field" style="margin-bottom:0">
-          <div class="cfg-label">PIN BUOY SN</div>
-          <input class="cfg-input" id="cfg-pin" autocorrect="off">
-        </div>
-      </div>
-
-      <div class="sh">POLL SETTINGS</div>
-      <div class="cfg-section">
-        <div class="cfg-title">AUTO-REFRESH</div>
-        <div class="cfg-row">
-          <div class="cfg-field">
-            <div class="cfg-label">POLL INTERVAL (sec)</div>
-            <input class="cfg-input" id="cfg-poll" type="number" value="30" min="10" max="300">
-          </div>
-          <div class="cfg-field">
-            <div class="cfg-label">WINDOW (min before reference)</div>
-            <input class="cfg-input" id="cfg-window" type="number" value="5" min="1" max="30">
-          </div>
-        </div>
-        <div class="poll-indicator">
-          <div class="spinner" id="poll-spinner" style="display:none"></div>
-          <span>Last poll: </span><span class="poll-time" id="cfg-last-poll">never</span>
-        </div>
-      </div>
-
-      <button class="cfg-save" onclick="saveConfig()">SAVE & REFRESH</button>
-      <button class="cfg-reset" onclick="resetAll()">RESET EVERYTHING</button>
-    </div>
-
-  </div><!-- /content -->
-
-  <!-- Floating refresh button -->
-  <button id="refresh-btn" onclick="manualRefresh()" title="Refresh now">↻</button>
-
-</div><!-- /app -->
-
-<script>
-// ══════════════════════════════════════════════════════════════════
-//  CONSTANTS & POLARS
-// ══════════════════════════════════════════════════════════════════
-const D2R = Math.PI/180;
-const RE  = 6371000;
-const M32_POLAR = {"6":{"50":9.2,"51":9.23,"52":9.26,"53":9.29,"54":9.32,"55":9.35,"56":9.38,"57":9.41,"58":9.44,"59":9.47,"60":9.5,"61":9.53,"62":9.56,"63":9.59,"64":9.62,"65":9.65,"66":9.68,"67":9.71,"68":9.74,"69":9.77,"70":9.8,"71":9.82,"72":9.84,"73":9.86,"74":9.88,"75":9.9,"76":9.91,"77":9.92,"78":9.93,"79":9.94,"80":9.95,"81":9.956,"82":9.962,"83":9.968,"84":9.974,"85":9.98,"86":9.984,"87":9.988,"88":9.992,"89":9.996,"90":10.0,"91":10.1,"92":10.2,"93":10.3,"94":10.4,"95":10.5,"96":10.6,"97":10.7,"98":10.8,"99":10.9,"100":11.0,"101":11.03,"102":11.06,"103":11.09,"104":11.12,"105":11.15,"106":11.17,"107":11.19,"108":11.21,"109":11.23,"110":11.25,"111":11.24,"112":11.23,"113":11.22,"114":11.21,"115":11.2,"116":11.16,"117":11.12,"118":11.08,"119":11.04,"120":11.0,"121":10.94,"122":10.88,"123":10.82,"124":10.76,"125":10.7,"126":10.64,"127":10.58,"128":10.52,"129":10.46,"130":10.4,"131":10.32,"132":10.24,"133":10.16,"134":10.08,"135":10.0,"136":9.98,"137":9.96,"138":9.94,"139":9.92,"140":9.9,"141":9.88,"142":9.86,"143":9.84,"144":9.82,"145":9.8,"146":9.78,"147":9.76,"148":9.74,"149":9.72,"150":9.7},"8":{"50":10.06,"51":10.078,"52":10.096,"53":10.114,"54":10.132,"55":10.15,"56":10.166,"57":10.182,"58":10.198,"59":10.214,"60":10.23,"61":10.254,"62":10.278,"63":10.302,"64":10.326,"65":10.35,"66":10.374,"67":10.398,"68":10.422,"69":10.446,"70":10.47,"71":10.57,"72":10.67,"73":10.77,"74":10.87,"75":10.97,"76":11.066,"77":11.162,"78":11.258,"79":11.354,"80":11.45,"81":11.514,"82":11.578,"83":11.642,"84":11.706,"85":11.77,"86":11.832,"87":11.894,"88":11.956,"89":12.018,"90":12.08,"91":12.176,"92":12.272,"93":12.368,"94":12.464,"95":12.56,"96":12.656,"97":12.752,"98":12.848,"99":12.944,"100":13.04,"101":13.04,"102":13.04,"103":13.04,"104":13.04,"105":13.04,"106":13.056,"107":13.072,"108":13.088,"109":13.104,"110":13.12,"111":13.118,"112":13.116,"113":13.114,"114":13.112,"115":13.11,"116":13.108,"117":13.106,"118":13.104,"119":13.102,"120":13.1,"121":13.052,"122":13.004,"123":12.956,"124":12.908,"125":12.86,"126":12.81,"127":12.76,"128":12.71,"129":12.66,"130":12.61,"131":12.57,"132":12.53,"133":12.49,"134":12.45,"135":12.41,"136":12.41,"137":12.41,"138":12.41,"139":12.41,"140":12.41,"141":12.422,"142":12.434,"143":12.446,"144":12.458,"145":12.47,"146":12.484,"147":12.498,"148":12.512,"149":12.526,"150":12.54},"10":{"50":10.93,"51":10.932,"52":10.934,"53":10.936,"54":10.938,"55":10.94,"56":10.944,"57":10.948,"58":10.952,"59":10.956,"60":10.96,"61":10.978,"62":10.996,"63":11.014,"64":11.032,"65":11.05,"66":11.066,"67":11.082,"68":11.098,"69":11.114,"70":11.13,"71":11.314,"72":11.498,"73":11.682,"74":11.866,"75":12.05,"76":12.23,"77":12.41,"78":12.59,"79":12.77,"80":12.95,"81":13.072,"82":13.194,"83":13.316,"84":13.438,"85":13.56,"86":13.68,"87":13.8,"88":13.92,"89":14.04,"90":14.16,"91":14.254,"92":14.348,"93":14.442,"94":14.536,"95":14.63,"96":14.72,"97":14.81,"98":14.9,"99":14.99,"100":15.08,"101":15.05,"102":15.02,"103":14.99,"104":14.96,"105":14.93,"106":14.94,"107":14.95,"108":14.96,"109":14.97,"110":14.98,"111":14.986,"112":14.992,"113":14.998,"114":15.004,"115":15.01,"116":15.046,"117":15.082,"118":15.118,"119":15.154,"120":15.19,"121":15.154,"122":15.118,"123":15.082,"124":15.046,"125":15.01,"126":14.97,"127":14.93,"128":14.89,"129":14.85,"130":14.81,"131":14.81,"132":14.81,"133":14.81,"134":14.81,"135":14.81,"136":14.83,"137":14.85,"138":14.87,"139":14.89,"140":14.91,"141":14.958,"142":15.006,"143":15.054,"144":15.102,"145":15.15,"146":15.196,"147":15.242,"148":15.288,"149":15.334,"150":15.38},"12":{"50":11.79,"51":11.78,"52":11.77,"53":11.76,"54":11.75,"55":11.74,"56":11.73,"57":11.72,"58":11.71,"59":11.7,"60":11.69,"61":11.702,"62":11.714,"63":11.726,"64":11.738,"65":11.75,"66":11.76,"67":11.77,"68":11.78,"69":11.79,"70":11.8,"71":12.064,"72":12.328,"73":12.592,"74":12.856,"75":13.12,"76":13.386,"77":13.652,"78":13.918,"79":14.184,"80":14.45,"81":14.63,"82":14.81,"83":14.99,"84":15.17,"85":15.35,"86":15.53,"87":15.71,"88":15.89,"89":16.07,"90":16.25,"91":16.338,"92":16.426,"93":16.514,"94":16.602,"95":16.69,"96":16.776,"97":16.862,"98":16.948,"99":17.034,"100":17.12,"101":17.062,"102":17.004,"103":16.946,"104":16.888,"105":16.83,"106":16.772,"107":16.714,"108":16.656,"109":16.598,"110":16.54,"111":16.616,"112":16.692,"113":16.768,"114":16.844,"115":16.92,"116":16.994,"117":17.068,"118":17.142,"119":17.216,"120":17.29,"121":17.264,"122":17.238,"123":17.212,"124":17.186,"125":17.16,"126":17.132,"127":17.104,"128":17.076,"129":17.048,"130":17.02,"131":17.06,"132":17.1,"133":17.14,"134":17.18,"135":17.22,"136":17.26,"137":17.3,"138":17.34,"139":17.38,"140":17.42,"141":17.5,"142":17.58,"143":17.66,"144":17.74,"145":17.82,"146":17.9,"147":17.98,"148":18.06,"149":18.14,"150":18.22}};
-const M32_POLAR_TWS = [6,8,10,12,14,16,18,20,22];
-const TWA_MIN=50, TWA_MAX=150;
-
-// ══════════════════════════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════════════════════════
-let STATE = {
-  eventId: '',
-  raceDay: 1,
-  division: 'M32',
-  mode: 'live',
-  pollInterval: 30,
-  windowMin: 5,
-  guns: [],  // [[raceNum, ts], ...]
-  selectedRaceNum: null,
-  selectedGunTs: null,
-  replayCursorTs: null,
-  replayRangeMinTs: null,
-  replayRangeMaxTs: null,
-  gateSNs: { WW:[], LW:[], RC_SNS:[], PIN_SN:null },
-  eventTzOffsetMin: -300,
-  detectedMarkSNs: [],
-  // Live mark positions
-  marks: {},   // sn -> {lat,lon}
-  prevMarks: {}, // for drift detection
-  // Computed geometry
-  RC: null, PIN: null,
-  WWGATE: null, LWGATE: null,
-  WW_A: null, WW_B: null, LW_A: null, LW_B: null,
-  MID: null,
-  rm: null,   // reach mark {lat,lon,source:'gps'|'manual'|'inferred'}
-  // Wind
-  windAuto: null,  // {twd, boatCount}
-  windManual: null, // {twd, tws}
-  recentTracks: {}, // boat -> recent track pts
-  // History
-  raceHistory: [], // [{raceNum, slBias, wwBias, lwBias, courseAxis, guns}]
-  // Poll state
-  lastPoll: null,
-  polling: false,
-  pollTimer: null,
-  countdownTimer: null,
-  countdownSec: 0,
-};
-
-// ══════════════════════════════════════════════════════════════════
-//  GEO MATH
-// ══════════════════════════════════════════════════════════════════
-function hav(a,b,c,d){const dL=(c-a)*D2R,dO=(d-b)*D2R,x=Math.sin(dL/2)**2+Math.cos(a*D2R)*Math.cos(c*D2R)*Math.sin(dO/2)**2;return RE*2*Math.asin(Math.sqrt(x))}
-function brg(a,b,c,d){const dO=(d-b)*D2R,x=Math.sin(dO)*Math.cos(c*D2R),y=Math.cos(a*D2R)*Math.sin(c*D2R)-Math.sin(a*D2R)*Math.cos(c*D2R)*Math.cos(dO);return(Math.atan2(x,y)/D2R+360)%360}
-function offsetPos(lat,lon,bearingDeg,distM){const R=RE,brR=bearingDeg*D2R,laR=lat*D2R;const nlat=Math.asin(Math.sin(laR)*Math.cos(distM/R)+Math.cos(laR)*Math.sin(distM/R)*Math.cos(brR));const nlon=lon*D2R+Math.atan2(Math.sin(brR)*Math.sin(distM/R)*Math.cos(laR),Math.cos(distM/R)-Math.sin(laR)*Math.sin(nlat));return{lat:nlat/D2R, lon:nlon/D2R}}
-function angDiff(a,b){return((a-b+540)%360)-180}
-function circMean(angles){let sx=0,sy=0;for(const a of angles){sx+=Math.cos(a*D2R);sy+=Math.sin(a*D2R)}return(Math.atan2(sy,sx)/D2R+360)%360}
-
-// Signed distance to start line: +ve = pre-start (safe), -ve = OCS
-function distToLine(lat,lon,la1,lo1,la2,lo2){
-  const cLat=(la1+la2)/2;
-  const toM=(la,lo)=>[(lo-lo1)*D2R*RE*Math.cos(cLat*D2R),(la-la1)*D2R*RE];
-  const[px,py]=toM(lat,lon),[ex,ey]=toM(la2,lo2);
-  const L=Math.sqrt(ex*ex+ey*ey);
-  return -(px*(ey/L)-py*(ex/L));
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  POLARS
-// ══════════════════════════════════════════════════════════════════
-function polarSpeed(twa, tws){
-  let t=Math.round(Math.abs(twa));
-  t=Math.max(TWA_MIN,Math.min(TWA_MAX,t));
-  if(tws<=M32_POLAR_TWS[0]) return +(M32_POLAR[String(M32_POLAR_TWS[0])][String(t)]||0);
-  if(tws>=M32_POLAR_TWS[M32_POLAR_TWS.length-1]) return +(M32_POLAR[String(M32_POLAR_TWS[M32_POLAR_TWS.length-1])][String(t)]||0);
-  let lo=M32_POLAR_TWS[0],hi=M32_POLAR_TWS[M32_POLAR_TWS.length-1];
-  for(let i=0;i<M32_POLAR_TWS.length-1;i++){if(tws>=M32_POLAR_TWS[i]&&tws<=M32_POLAR_TWS[i+1]){lo=M32_POLAR_TWS[i];hi=M32_POLAR_TWS[i+1];break;}}
-  const f=(tws-lo)/(hi-lo);
-  return (+(M32_POLAR[String(lo)][String(t)]||0))*(1-f) + (+(M32_POLAR[String(hi)][String(t)]||0))*f;
-}
-
-function bestVMGUpwind(tws){
-  let bestVmg=-Infinity, bestTwa=45;
-  for(let twa=30;twa<=70;twa++){
-    const spd=polarSpeed(twa,tws);
-    const vmg=spd*Math.cos(twa*D2R);
-    if(vmg>bestVmg){bestVmg=vmg;bestTwa=twa;}
-  }
-  return {twa:bestTwa, vmg:bestVmg, spd:polarSpeed(bestTwa,tws)};
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  OPTIMAL START COMPUTATION
-// ══════════════════════════════════════════════════════════════════
-function computeOptimalStart(RC, PIN, rm, twd, tws){
-  if(!RC||!PIN||!rm||twd==null) return null;
-  const N=60;
-  const times=[];
-  let minT=Infinity, minIdx=-1;
-  for(let i=0;i<=N;i++){
-    const f=i/N;
-    const sLat=RC.lat+(PIN.lat-RC.lat)*f;
-    const sLon=RC.lon+(PIN.lon-RC.lon)*f;
-    const dist=hav(sLat,sLon,rm.lat,rm.lon);
-    const brgToRM=brg(sLat,sLon,rm.lat,rm.lon);
-    const twa=Math.abs(((brgToRM-twd+180+360)%360)-180);
-    const absTWA=twa>180?360-twa:twa;
-    const tw=tws||12;
-    const spd=(absTWA>=TWA_MIN&&absTWA<=TWA_MAX) ? polarSpeed(absTWA,tw) : (tw>8?13:10);
-    const spdMs=spd*0.514444;
-    const t=spdMs>0?dist/spdMs:9999;
-    times.push({f,sLat,sLon,t,twa:absTWA,spd});
-    if(t<minT){minT=t;minIdx=i;}
-  }
-  const best=times[minIdx];
-  const penalties=times.map(p=>Math.max(0,p.t-minT));
-  times.forEach((p,i)=>{p.penalty=penalties[i];});
-  return {times,best,bestIdx:minIdx,minT,rcPenalty:penalties[0],pinPenalty:penalties[N]};
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  GATE BIAS COMPUTATION
-// ══════════════════════════════════════════════════════════════════
-// Returns signed bias in metres: +ve = starboard (right) side favoured
-function gateBias(buoyA, buoyB, twd){
-  if(!buoyA||!buoyB||twd==null) return null;
-  const mid={lat:(buoyA.lat+buoyB.lat)/2, lon:(buoyA.lon+buoyB.lon)/2};
-  const gateAxis=brg(buoyA.lat,buoyA.lon,buoyB.lat,buoyB.lon);
-  // Upwind VMG from each buoy toward the wind
-  // The favoured gate buoy is the one that yields a shorter distance to lay the mark
-  // For a gate: bias = perpendicular offset of gate centre from course axis projected
-  // Simpler: measure distance along course axis from gate centre to each buoy
-  // Positive = buoy B (right of gate when facing WW) further upwind
-  const perpAngle = (twd + 90) % 360; // perpendicular to wind
-  // Project buoyA and buoyB onto the perpendicular-to-wind axis
-  function projOnWind(buoy){
-    // component of buoy position in downwind direction from mid
-    const dx=(buoy.lon-mid.lon)*D2R*RE*Math.cos(mid.lat*D2R);
-    const dy=(buoy.lat-mid.lat)*D2R*RE;
-    const wr=twd*D2R;
-    return dy*Math.cos(wr)+dx*Math.sin(wr);
-  }
-  const projA=projOnWind(buoyA);
-  const projB=projOnWind(buoyB);
-  return (projB-projA); // +ve = B is further upwind = starboard/right favoured
-}
-
-// Start line bias: positive = RC favoured, negative = PIN favoured
-function startLineBias(RC, PIN, courseAxis){
-  if(!RC||!PIN||courseAxis==null) return null;
-  const slBrg=brg(RC.lat,RC.lon,PIN.lat,PIN.lon);
-  // Square line = slBrg perpendicular to courseAxis
-  // Bias angle: how far the line is from square
-  const squareBrg = (courseAxis + 90) % 360;
-  const biasAngle = angDiff(slBrg, squareBrg);
-  // Convert angle to metres over typical line length
-  const lineLen = hav(RC.lat,RC.lon,PIN.lat,PIN.lon);
-  // Projection: metres of advantage at one end vs other
-  const biasM = lineLen * Math.sin(biasAngle * D2R);
-  return biasM; // +ve = RC favoured
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  API
-// ══════════════════════════════════════════════════════════════════
-async function fetchTelemetry(eventId, after, before, limit=5000){
-  const div=STATE.division||'M32';
-  const url=`https://teleapi.regatta.app/telemetry/event/${eventId}?after=${after}&before=${before}&limit=${limit}&division=${div}`;
-  const r=await fetch(url);
-  if(!r.ok) throw new Error(`HTTP ${r.status}`);
-  const d=await r.json();
-  return d.Rows||[];
-}
-
-async function fetchAllPages(eventId, after, before, maxPages=20){
-  let cursor=after;
-  const allRows=[];
-  for(let p=0;p<maxPages;p++){
-    const rows=await fetchTelemetry(eventId,cursor,before);
-    if(!rows.length) break;
-    allRows.push(...rows);
-    cursor=rows[rows.length-1][0]+1;
-    if(rows.length<5000) break;
-  }
-  return allRows;
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  WIND INFERENCE
-// ══════════════════════════════════════════════════════════════════
-function inferWindFromTracks(tracks, courseAxis){
-  const boats=Object.keys(tracks||{});
-  if(!boats.length) return null;
-  const upAxis=courseAxis||315;
-  const downAxis=(upAxis+180)%360;
-  const tackHdgs=[], gybeHdgs=[];
-
-  for(const sail of boats){
-    const t=tracks[sail];
-    if(!t||t.length<20) continue;
-    for(let i=3;i<t.length-3;i++){
-      const p=t[i], a=t[i-3], b=t[i+3];
-      if(!a||!b) continue;
-      const sogKts=(p.sog||0)*0.539957;
-      if(sogKts<4) continue;
-      const cogPrev=brg(t[i-4]?.lat||a.lat,t[i-4]?.lon||a.lon,a.lat,a.lon);
-      const cogNext=brg(b.lat,b.lon,t[i+4]?.lat||b.lat,t[i+4]?.lon||b.lon);
-      const turn=angDiff(cogNext,cogPrev);
-      if(Math.abs(turn)<18||Math.abs(turn)>160) continue; // needs to be a real tack/gybe
-      const cog=brg(a.lat,a.lon,b.lat,b.lon);
-      const toUp=Math.abs(angDiff(cog,upAxis));
-      const toDn=Math.abs(angDiff(cog,downAxis));
-      if(toUp<60) {
-        // upwind segment - tack heading gives wind direction
-        // wind is roughly perpendicular to average of port+starboard tack
-        tackHdgs.push(cog);
-      } else if(toDn<60){
-        gybeHdgs.push(cog);
+      function init() {
+        cacheEls();
+        bindUI();
+        renderTabs();
+        ensureDemoTelemetry();
+        renderAll();
       }
-    }
-  }
 
-  if(tackHdgs.length>=2){
-    const meanCog=circMean(tackHdgs);
-    // For upwind sailing, wind is ~45° off the beam, infer TWD
-    // Average the tack COGs and add 90° to get approximate TWD
-    // More sophisticated: sort into port/stbd groups
-    const sorted=[...tackHdgs].sort((a,b)=>a-b);
-    const mid=sorted[Math.floor(sorted.length/2)];
-    const port=sorted.filter(h=>angDiff(h,mid)>0);
-    const stbd=sorted.filter(h=>angDiff(h,mid)<=0);
-    if(port.length&&stbd.length){
-      const pMean=circMean(port);
-      const sMean=circMean(stbd);
-      const twd=(circMean([pMean,sMean])+180)%360;
-      return {twd:Math.round(twd), boatCount:boats.length, method:'tack'};
-    }
-    return {twd:Math.round((meanCog+90)%360), boatCount:boats.length, method:'approx'};
-  }
-  return null;
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  MARK POSITION EXTRACTION
-// ══════════════════════════════════════════════════════════════════
-function extractMarksFromRows(rows, refTs){
-  const acc={};
-  const window=refTs?300000:120000; // 5min or 2min
-  for(const row of rows){
-    if(row[7]!=='mark') continue;
-    const sn=row[1], ts=row[0];
-    const lat=row[8], lon=row[9];
-    if(!lat||!lon) continue;
-    if(refTs && (ts<refTs-window || ts>refTs+30000)) continue;
-    if(!acc[sn]) acc[sn]={lats:[],lons:[]};
-    acc[sn].lats.push(lat);
-    acc[sn].lons.push(lon);
-  }
-  const out={};
-  for(const [sn,d] of Object.entries(acc)){
-    out[sn]={
-      lat:d.lats.reduce((a,b)=>a+b,0)/d.lats.length,
-      lon:d.lons.reduce((a,b)=>a+b,0)/d.lons.length
-    };
-  }
-  return out;
-}
-
-function extractTracksFromRows(rows, gunTs, windowMs=600000){
-  const tracks={};
-  for(const row of rows){
-    if(row[7]!=='competitor') continue;
-    const sail=row[3]; if(!sail) continue;
-    const ts=row[0];
-    if(gunTs&&(ts<gunTs-5000||ts>gunTs+windowMs)) continue;
-    if(!tracks[sail]) tracks[sail]=[];
-    tracks[sail].push({ts,lat:row[8],lon:row[9],sog:row[13],hdg:row[12]});
-  }
-  return tracks;
-}
-
-function resolveGatePositions(markPos, gateSNs){
-  const g={RC:null,PIN:null,WWGATE:null,LWGATE:null,WW_A:null,WW_B:null,LW_A:null,LW_B:null};
-  const wwSns=(gateSNs.WW||[]).filter(s=>markPos[s]);
-  const lwSns=(gateSNs.LW||[]).filter(s=>markPos[s]);
-  const rcSns=(gateSNs.RC_SNS||[]).filter(s=>markPos[s]);
-  if(wwSns.length>=1){
-    g.WW_A=markPos[wwSns[0]]; g.WW_B=markPos[wwSns[1]]||g.WW_A;
-    g.WWGATE={lat:(g.WW_A.lat+g.WW_B.lat)/2,lon:(g.WW_A.lon+g.WW_B.lon)/2};
-  }
-  if(lwSns.length>=1){
-    g.LW_A=markPos[lwSns[0]]; g.LW_B=markPos[lwSns[1]]||g.LW_A;
-    g.LWGATE={lat:(g.LW_A.lat+g.LW_B.lat)/2,lon:(g.LW_A.lon+g.LW_B.lon)/2};
-  }
-  if(rcSns.length) g.RC=markPos[rcSns[0]];
-  const pinSN=gateSNs.PIN_SN;
-  if(pinSN&&markPos[pinSN]) g.PIN=markPos[pinSN];
-  if(g.RC&&g.PIN) g.MID={lat:(g.RC.lat+g.PIN.lat)/2,lon:(g.RC.lon+g.PIN.lon)/2};
-  return g;
-}
-
-// Detect if a mark has drifted significantly
-function checkDrift(prevMarks, newMarks, thresholdM=15){
-  const drifted=[];
-  for(const [sn, pos] of Object.entries(newMarks)){
-    if(!prevMarks[sn]) continue;
-    const d=hav(prevMarks[sn].lat,prevMarks[sn].lon,pos.lat,pos.lon);
-    if(d>thresholdM) drifted.push({sn,dist:Math.round(d)});
-  }
-  return drifted;
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  MAIN POLL
-// ══════════════════════════════════════════════════════════════════
-async function poll(){
-  if(!STATE.eventId) return;
-  STATE.polling=true;
-  setStatus('polling','POLLING…');
-  showLoadingBar(30);
-
-  try{
-    const win=getPollWindow();
-    const rows=await fetchAllPages(STATE.eventId, win.after, win.before);
-    showLoadingBar(70);
-
-    // Extract marks
-    const refTs=STATE.mode==='replay' ? (STATE.replayCursorTs||STATE.selectedGunTs) : null;
-    const newMarks=extractMarksFromRows(rows, refTs);
-    const serialCounts={};
-    for(const row of rows){ if(row[7]==='mark' && row[1]!=null){ const sn=String(row[1]); serialCounts[sn]=(serialCounts[sn]||0)+1; } }
-    STATE.detectedMarkSNs=Object.entries(serialCounts).map(([sn,count])=>({sn,count})).sort((a,b)=>b.count-a.count || a.sn.localeCompare(b.sn));
-    const drifted=checkDrift(STATE.prevMarks, newMarks);
-    STATE.prevMarks={...STATE.marks};
-    STATE.marks={...STATE.marks, ...newMarks};
-
-    // Resolve gate positions
-    const geo=resolveGatePositions(STATE.marks, STATE.gateSNs);
-    Object.assign(STATE, geo);
-
-    // Extract recent tracks for wind inference
-    STATE.recentTracks=extractTracksFromRows(rows, refTs, 300000);
-
-    // Auto-infer wind if we have tracks
-    if(Object.keys(STATE.recentTracks).length>0&&STATE.WWGATE&&STATE.LWGATE){
-      const courseAxis=brg(STATE.LWGATE.lat,STATE.LWGATE.lon,STATE.WWGATE.lat,STATE.WWGATE.lon);
-      const wInf=inferWindFromTracks(STATE.recentTracks, courseAxis);
-      if(wInf) STATE.windAuto=wInf;
-    }
-
-    // Show drift alerts
-    if(drifted.length>0&&Object.keys(STATE.prevMarks).length>0){
-      const msg=`Mark drift: ${drifted.map(d=>`SN${d.sn} +${d.dist}m`).join(', ')}`;
-      showDriftAlert(msg);
-    } else {
-      hideDriftAlert();
-    }
-
-    STATE.lastPoll=Date.now();
-    setStatus('ok', win.status);
-    updateUI();
-    renderDetectedSerials();
-    showLoadingBar(100);
-    setTimeout(()=>showLoadingBar(0),400);
-
-  } catch(e){
-    console.error('Poll error:', e);
-    setStatus('err','ERROR: '+e.message.substring(0,20));
-    showLoadingBar(0);
-  }
-  STATE.polling=false;
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  HISTORY LOAD
-// ══════════════════════════════════════════════════════════════════
-async function loadHistory(){
-  if(!STATE.guns||!STATE.guns.length) return;
-  const history=[];
-  for(const [raceNum, gunTs] of STATE.guns){
-    try{
-      const rows=await fetchAllPages(STATE.eventId, gunTs-35000, gunTs+300000, 10);
-      const markPos=extractMarksFromRows(rows, gunTs);
-      const geo=resolveGatePositions(markPos, STATE.gateSNs);
-      const tracks=extractTracksFromRows(rows, gunTs, 300000);
-      const courseAxis=(geo.WWGATE&&geo.LWGATE)?brg(geo.LWGATE.lat,geo.LWGATE.lon,geo.WWGATE.lat,geo.WWGATE.lon):null;
-      const wInf=(Object.keys(tracks).length&&geo.WWGATE&&geo.LWGATE)?inferWindFromTracks(tracks,courseAxis):null;
-      const twd=wInf?.twd;
-      const slBias=(geo.RC&&geo.PIN&&courseAxis!=null)?Math.round(startLineBias(geo.RC,geo.PIN,courseAxis)):null;
-      const wwBias=(geo.WW_A&&geo.WW_B&&twd!=null)?Math.round(gateBias(geo.WW_A,geo.WW_B,twd)):null;
-      const lwBias=(geo.LW_A&&geo.LW_B&&twd!=null)?Math.round(gateBias(geo.LW_A,geo.LW_B,twd)):null;
-      history.push({raceNum,gunTs,courseAxis,slBias,wwBias,lwBias,twd,slLength:geo.RC&&geo.PIN?Math.round(hav(geo.RC.lat,geo.RC.lon,geo.PIN.lat,geo.PIN.lon)):null});
-    }catch(e){
-      history.push({raceNum,gunTs,error:true});
-    }
-  }
-  STATE.raceHistory=history;
-  renderHistory();
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  UI RENDERING
-// ══════════════════════════════════════════════════════════════════
-const fmtBrg = d => d!=null?`${d.toFixed(1)}°`:'—';
-const fmtBrg2 = d => d!=null?`${d.toFixed(1)}° / ${((d+180)%360).toFixed(1)}°`:'—';
-const fmtM = v => v!=null?`${Math.round(v)}m`:'—';
-const fmtKts = v => v!=null?`${(+v).toFixed(1)}kts`:'—';
-
-function getEffectiveTwd(){
-  if(STATE.windManual?.twd!=null) return STATE.windManual.twd;
-  return STATE.windAuto?.twd??null;
-}
-function getEffectiveTws(){
-  if(STATE.windManual?.tws!=null) return STATE.windManual.tws;
-  return 12; // default
-}
-
-function updateUI(){
-  updateUpdateBanner();
-  const twd=getEffectiveTwd();
-  const tws=getEffectiveTws();
-  const {RC,PIN,WWGATE,LWGATE,WW_A,WW_B,LW_A,LW_B,MID,rm}=STATE;
-
-  // Course axis
-  const courseAxis=(WWGATE&&LWGATE)?brg(LWGATE.lat,LWGATE.lon,WWGATE.lat,WWGATE.lon):null;
-  const wwLegLen=(WWGATE&&LWGATE)?Math.round(hav(WWGATE.lat,WWGATE.lon,LWGATE.lat,LWGATE.lon)):null;
-
-  el('val-axis').textContent=fmtBrg2(courseAxis);
-  el('val-axis-sub').textContent=courseAxis?`${Math.round(courseAxis)}° up / ${Math.round((courseAxis+180)%360)}° down · ${wwLegLen?wwLegLen+'m leg':''}`:'LW → WW bearing';
-
-  // Start line
-  const slAxis=(RC&&PIN)?brg(RC.lat,RC.lon,PIN.lat,PIN.lon):null;
-  const slLen=(RC&&PIN)?Math.round(hav(RC.lat,RC.lon,PIN.lat,PIN.lon)):null;
-  el('val-sl-axis').textContent=fmtBrg2(slAxis);
-  el('val-sl-length').textContent=slLen?`length ${slLen}m`:'length —';
-
-  // Line bias
-  const slBias=(RC&&PIN&&courseAxis!=null)?startLineBias(RC,PIN,courseAxis):null;
-  if(slBias!=null){
-    const rcFav=slBias>0;
-    el('val-sl-bias').textContent=`${Math.abs(Math.round(slBias))}m`;
-    el('val-sl-bias-sub').textContent=rcFav?'RC END FAVOURED':'PIN END FAVOURED';
-    el('val-sl-bias').className='mc-val med '+(rcFav?'good':'warn-c');
-    el('bias-accent').className='mc-accent '+(rcFav?'':'orange');
-  } else {
-    el('val-sl-bias').textContent='—';
-    el('val-sl-bias-sub').textContent='needs RC + PIN + course axis';
-  }
-
-  // Gate biases
-  const wwAxis=(WW_A&&WW_B)?brg(WW_A.lat,WW_A.lon,WW_B.lat,WW_B.lon):null;
-  const lwAxis=(LW_A&&LW_B)?brg(LW_A.lat,LW_A.lon,LW_B.lat,LW_B.lon):null;
-  const wwBias=(WW_A&&WW_B&&twd!=null)?gateBias(WW_A,WW_B,twd):null;
-  const lwBias=(LW_A&&LW_B&&twd!=null)?gateBias(LW_A,LW_B,twd):null;
-
-  el('val-ww-axis').textContent=fmtBrg2(wwAxis);
-  if(wwBias!=null){
-    const bStr=Math.abs(Math.round(wwBias));
-    const side=wwBias>0?'STBD (B) +':'PORT (A) +';
-    el('val-ww-bias').textContent=`bias ${side}${bStr}m`;
-    el('val-ww-bias').className='mc-sub '+(wwBias>0?'good':'warn-c');
-  } else {
-    el('val-ww-bias').textContent='bias — (needs wind)';
-    el('val-ww-bias').className='mc-sub';
-  }
-
-  el('val-lw-axis').textContent=fmtBrg2(lwAxis);
-  if(lwBias!=null){
-    const bStr=Math.abs(Math.round(lwBias));
-    const side=lwBias>0?'STBD':'PORT';
-    el('val-lw-bias').textContent=`axis favours ${side} by ${bStr}m`;
-    el('val-lw-bias').className='mc-sub '+(lwBias>0?'good':'warn-c');
-    el('val-lw-bias-main').textContent=`${bStr}m`;
-    el('val-lw-bias-sub-main').textContent=`${side} side favoured`;
-    el('val-lw-bias-main').className='mc-val big '+(lwBias>0?'good':'warn-c');
-  } else {
-    el('val-lw-bias').textContent='bias — (needs wind)';
-    el('val-lw-bias').className='mc-sub';
-    el('val-lw-bias-main').textContent='—';
-    el('val-lw-bias-sub-main').textContent='needs wind + LW gate';
-    el('val-lw-bias-main').className='mc-val big';
-  }
-
-  // Reach mark geometry
-  if(rm&&RC&&PIN){
-    const rcRm=Math.round(hav(RC.lat,RC.lon,rm.lat,rm.lon));
-    const pinRm=Math.round(hav(PIN.lat,PIN.lon,rm.lat,rm.lon));
-    const diff=rcRm-pinRm;
-    el('val-rc-rm').textContent=`${rcRm}m`;
-    el('val-pin-rm').textContent=`${pinRm}m`;
-    el('val-rm-diff').textContent=`${Math.abs(diff)}m`;
-    el('val-rm-diff-sub').textContent=diff>0?'PIN closer to RM':'RC closer to RM';
-    el('rm-diff-accent').className='mc-accent '+(diff>0?'orange':'');
-  } else {
-    ['val-rc-rm','val-pin-rm','val-rm-diff'].forEach(id=>el(id).textContent='—');
-  }
-
-  if(rm&&MID){
-    const reachLeg=Math.round(hav(MID.lat,MID.lon,rm.lat,rm.lon));
-    const rmBrg=Math.round(brg(MID.lat,MID.lon,rm.lat,rm.lon));
-    el('val-reach-leg').textContent=`${reachLeg}m`;
-    el('val-rm-brg').textContent=fmtBrg(rmBrg);
-    if(twd!=null){
-      const twa=Math.abs(angDiff(rmBrg,twd));
-      el('val-reach-twa').textContent=`${twa.toFixed(0)}° TWA from mid`;
-      el('val-reach-twa-main').textContent=`${twa.toFixed(0)}°`;
-      el('val-reach-leg-sub-main').textContent=`bearing ${fmtBrg(rmBrg)} · ${reachLeg}m from midpoint`; 
-    }
-  } else {
-    el('val-reach-leg').textContent='—';
-    el('val-rm-brg').textContent='—';
-    el('val-reach-twa-main').textContent='—';
-    el('val-reach-leg-sub-main').textContent='reach geometry pending';
-  }
-
-  // Optimal start
-  updateOptimalStart(RC, PIN, rm, twd, tws);
-
-  // Wind panel
-  updateWindPanel(twd, tws, RC, PIN, rm, MID);
-
-  // Map
-  drawMap();
-
-  // RM source badge
-  if(rm){
-    el('rm-source-badge').textContent=rm.source==='gps'?'GPS PING':rm.source==='manual'?'MANUAL':'INFERRED';
-    el('rm-dot').className='rm-dot '+(rm.source==='gps'?'gps':'set');
-    el('rm-status-text').textContent=rm.source==='gps'?`GPS: ${rm.lat.toFixed(5)}, ${rm.lon.toFixed(5)}`:`${rm.lat.toFixed(5)}, ${rm.lon.toFixed(5)}`;
-  }
-
-  // Map tab quick stats
-  el('map-axis').textContent=courseAxis?`${courseAxis.toFixed(1)}° / ${((courseAxis+180)%360).toFixed(1)}°`:'—';
-  if(slBias!=null) el('map-bias').textContent=`${Math.abs(Math.round(slBias))}m ${slBias>0?'RC':'PIN'}`;
-  else el('map-bias').textContent='—';
-  const hint=el('map-tap-hint');
-  if(hint) hint.textContent=STATE.rm?'TAP MAP TO MOVE REACH MARK':'TAP TO SET REACH MARK';
-}
-
-function updateOptimalStart(RC, PIN, rm, twd, tws){
-  if(!RC||!PIN||!rm||twd==null){
-    el('opt-badge').textContent='NEEDS WIND + RM';
-    el('opt-pos').textContent='—';
-    el('opt-rc-pen').textContent='—';
-    el('opt-pin-pen').textContent='—';
-    const svg=el('opt-svg');
-    svg.innerHTML='<line x1="0" y1="10" x2="300" y2="10" stroke="rgba(255,255,255,.12)" stroke-width="6"/><text id="opt-no-data" x="150" y="13" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(120,160,200,.5)">set reach mark + wind to compute</text>';
-    return;
-  }
-  const res=computeOptimalStart(RC,PIN,rm,twd,tws);
-  if(!res) return;
-  const {best,bestIdx,rcPenalty,pinPenalty}=res;
-  const N=res.times.length-1;
-  const pct=bestIdx/N;
-  const posLabel=pct<0.2?'RC END':pct>0.8?'PIN END':pct<0.4?'NEAR RC':pct>0.6?'NEAR PIN':'MIDLINE';
-  const along=Math.round(pct*((RC&&PIN)?hav(RC.lat,RC.lon,PIN.lat,PIN.lon):0));
-  el('opt-badge').textContent='COMPUTED';
-  el('opt-pos').textContent=posLabel;
-  if(el('opt-pos-sub')) el('opt-pos-sub').textContent=`~${along}m from RC · ${(pct*100).toFixed(0)}% up the line`; 
-  el('opt-rc-pen').textContent=rcPenalty<0.5?'OPTIMAL':`+${rcPenalty.toFixed(1)}s`;
-  el('opt-pin-pen').textContent=pinPenalty<0.5?'OPTIMAL':`+${pinPenalty.toFixed(1)}s`;
-
-  // Draw heat bar
-  const W=300, H=20;
-  const maxPen=Math.max(...res.times.map(t=>t.penalty),0.1);
-  let svgHtml='';
-  for(let i=0;i<N;i++){
-    const a=res.times[i],b=res.times[i+1];
-    const x1=Math.round((i/N)*W), x2=Math.round(((i+1)/N)*W);
-    const norm=Math.min(1,(a.penalty+b.penalty)/2/maxPen);
-    const r=Math.round(255*norm);
-    const g=Math.round(255*(1-norm));
-    svgHtml+=`<rect x="${x1}" y="6" width="${x2-x1+1}" height="8" fill="rgb(${r},${g},0)" opacity="0.85"/>`;
-  }
-  // Optimal marker
-  const ox=Math.round(pct*W);
-  svgHtml+=`<rect x="${ox-2}" y="2" width="4" height="16" fill="#00ff88" rx="1"/>`;
-  svgHtml+=`<text x="${ox}" y="${ox<30?18:4}" text-anchor="middle" font-family="Orbitron" font-size="6" fill="#00ff88" font-weight="700">OPT</text>`;
-  el('opt-svg').innerHTML=svgHtml;
-}
-
-function updateWindPanel(twd, tws, RC, PIN, rm, MID){
-  // Arrow rotation
-  if(twd!=null){
-    el('wind-arrow-g').setAttribute('transform',`translate(22,22) rotate(${twd})`);
-  }
-  el('wind-dir-auto').textContent=STATE.windAuto?`${STATE.windAuto.twd}°`:'—';
-  el('wind-dir-eff').textContent=twd!=null?`${twd}°`:'—';
-  el('wind-tws').textContent=`${tws}kts`;
-  el('wind-boat-count').textContent=STATE.windAuto?String(STATE.windAuto.boatCount):'—';
-
-  // Wind source label
-  if(STATE.windManual?.twd!=null){
-    el('wind-source-label').textContent=`Manual: ${STATE.windManual.twd}° at ${STATE.windManual.tws||'?'}kts`;
-    el('wind-source-label').className='wo-source';
-  } else if(STATE.windAuto){
-    el('wind-source-label').textContent=`Auto-inferred from ${STATE.windAuto.boatCount} boats`;
-    el('wind-source-label').className='wo-source auto';
-  } else {
-    el('wind-source-label').textContent='No wind data yet';
-    el('wind-source-label').className='wo-source auto';
-  }
-
-  // TWA to reach mark
-  if(rm&&twd!=null){
-    const calcTWA=(from)=>{
-      if(!from) return null;
-      const b=brg(from.lat,from.lon,rm.lat,rm.lon);
-      return Math.abs(angDiff(b,twd));
-    };
-    const twaRC=calcTWA(RC), twaPIN=calcTWA(PIN), twaMID=calcTWA(MID);
-    el('twa-rc').textContent=twaRC!=null?`${twaRC.toFixed(0)}°`:'—';
-    el('twa-pin').textContent=twaPIN!=null?`${twaPIN.toFixed(0)}°`:'—';
-    el('twa-mid').textContent=twaMID!=null?`${twaMID.toFixed(0)}°`:'—';
-    if(RC&&twaRC!=null){el('twa-rc-sub').textContent=`${Math.round(hav(RC.lat,RC.lon,rm.lat,rm.lon))}m to RM`;}
-    if(PIN&&twaPIN!=null){el('twa-pin-sub').textContent=`${Math.round(hav(PIN.lat,PIN.lon,rm.lat,rm.lon))}m to RM`;}
-    if(MID&&twaMID!=null){el('twa-mid-sub').textContent=`${Math.round(hav(MID.lat,MID.lon,rm.lat,rm.lon))}m to RM`;}
-    // Polar speed at reach
-    if(twaMID!=null&&twaMID>=TWA_MIN&&twaMID<=TWA_MAX){
-      const spd=polarSpeed(twaMID,tws);
-      el('polar-reach-spd').textContent=`${spd.toFixed(1)}kts`;
-      el('polar-reach-twa').textContent=`at ${twaMID.toFixed(0)}° TWA`;
-    }
-  } else {
-    ['twa-rc','twa-pin','twa-mid','polar-reach-spd'].forEach(id=>el(id).textContent='—');
-  }
-
-  // Best VMG upwind
-  const vmgUp=bestVMGUpwind(tws);
-  el('polar-vmg-up').textContent=`${vmgUp.vmg.toFixed(1)}kts`;
-  el('polar-vmg-up-twa').textContent=`best at ${vmgUp.twa}° TWA`;
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  MAP DRAWING
-// ══════════════════════════════════════════════════════════════════
-function drawMap(){
-  const canvas=document.getElementById('map-canvas');
-  const wrap=document.getElementById('map-wrap');
-  const W=wrap.clientWidth||320;
-  const H=Math.max(260, Math.min(Math.round(W*1.1), window.innerHeight-230));
-  canvas.width=W*2; canvas.height=H*2; // retina
-  canvas.style.width=W+'px'; canvas.style.height=H+'px';
-  const ctx=canvas.getContext('2d');
-  ctx.scale(2,2);
-  ctx.fillStyle='#050a10';
-  ctx.fillRect(0,0,W,H);
-
-  const {RC,PIN,WWGATE,LWGATE,WW_A,WW_B,LW_A,LW_B,MID,rm}=STATE;
-
-  // Need at least WW and LW to draw anything useful
-  if(!WWGATE&&!LWGATE&&!RC){
-    ctx.fillStyle='rgba(96,128,160,.4)';
-    ctx.font='10px Share Tech Mono';
-    ctx.textAlign='center';
-    ctx.fillText('No mark data yet',W/2,H/2-8);
-    ctx.fillText('Poll to fetch positions',W/2,H/2+10);
-    return;
-  }
-
-  // Course-axis-up rotation: WW at top, LW at bottom
-  const axisRef = (WWGATE&&LWGATE) ? brg(LWGATE.lat,LWGATE.lon,WWGATE.lat,WWGATE.lon) : 0;
-  const THETA = axisRef*D2R; // rotate so course axis is vertical with WW at top
-
-  const cLat = (WWGATE&&LWGATE) ? (WWGATE.lat+LWGATE.lat)/2 : (RC?.lat||0);
-  const cLon = (WWGATE&&LWGATE) ? (WWGATE.lon+LWGATE.lon)/2 : (RC?.lon||0);
-
-  function toM(la,lo){
-    return[(lo-cLon)*D2R*RE*Math.cos(cLat*D2R),(la-cLat)*D2R*RE];
-  }
-  function rot(x,y){
-    return[x*Math.cos(THETA)-y*Math.sin(THETA), x*Math.sin(THETA)+y*Math.cos(THETA)];
-  }
-  function toRot(la,lo){return rot(...toM(la,lo));}
-
-  // Collect all key points for extent
-  const keyPts=[];
-  [WWGATE,LWGATE,RC,PIN,WW_A,WW_B,LW_A,LW_B,MID,rm].forEach(p=>{if(p)keyPts.push(p);});
-  if(!keyPts.length) return;
-
-  const rk=keyPts.map(p=>toRot(p.lat,p.lon));
-  const mnX=Math.min(...rk.map(p=>p[0]));
-  const mxX=Math.max(...rk.map(p=>p[0]));
-  const mnY=Math.min(...rk.map(p=>p[1]));
-  const mxY=Math.max(...rk.map(p=>p[1]));
-
-  const pad=24;
-  const rangeX=mxX-mnX||100, rangeY=mxY-mnY||100;
-  const scaleX=(W-pad*2)/rangeX, scaleY=(H-pad*2)/rangeY;
-  const scale=Math.min(scaleX,scaleY);
-  const offX=pad+(W-pad*2-rangeX*scale)/2;
-  const offY=pad+(H-pad*2-rangeY*scale)/2;
-  const tX=rx=>offX+(rx-mnX)*scale;
-  const tY=ry=>H-offY-(ry-mnY)*scale;
-  function tP(la,lo){const[rx,ry]=toRot(la,lo);return[tX(rx),tY(ry)];}
-
-  // Scale badge
-  const scaleM=100;
-  el('map-scale-badge').textContent=`${scaleM}m`;
-
-  // Draw course axis line
-  if(WWGATE&&LWGATE){
-    const[ax,ay]=tP(LWGATE.lat,LWGATE.lon);
-    const[bx,by]=tP(WWGATE.lat,WWGATE.lon);
-    ctx.save();
-    ctx.strokeStyle='rgba(0,212,255,.2)';
-    ctx.lineWidth=1;
-    ctx.setLineDash([4,4]);
-    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
-    ctx.setLineDash([]);
-    // Axis label
-    const mx=(ax+bx)/2,my=(ay+by)/2;
-    const la=Math.atan2(by-ay,bx-ax);
-    ctx.fillStyle='rgba(0,212,255,.6)';
-    ctx.font='7px Share Tech Mono';
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.translate(mx,my);ctx.rotate(la);
-    ctx.fillText(`${axisRef.toFixed(1)}° / ${((axisRef+180)%360).toFixed(1)}°`,0,-7);
-    ctx.restore();
-  }
-
-  // Draw start line
-  if(RC&&PIN){
-    const[rcx,rcy]=tP(RC.lat,RC.lon);
-    const[pinx,piny]=tP(PIN.lat,PIN.lon);
-    ctx.save();
-    ctx.strokeStyle='rgba(255,208,0,.7)';
-    ctx.lineWidth=2.5;
-    ctx.beginPath();ctx.moveTo(rcx,rcy);ctx.lineTo(pinx,piny);ctx.stroke();
-    ctx.restore();
-    // Dashed lines from RC/PIN to reach mark
-    if(rm){
-      const[rmx,rmy]=tP(rm.lat,rm.lon);
-      ctx.save();
-      ctx.strokeStyle='rgba(0,212,255,.2)';
-      ctx.lineWidth=1;
-      ctx.setLineDash([3,4]);
-      ctx.beginPath();ctx.moveTo(rcx,rcy);ctx.lineTo(rmx,rmy);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(pinx,piny);ctx.lineTo(rmx,rmy);ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.restore();
-    }
-  }
-
-  // Draw reach leg
-  if(rm&&MID){
-    const[sx,sy]=tP(MID.lat,MID.lon);
-    const[rx,ry]=tP(rm.lat,rm.lon);
-    ctx.save();
-    ctx.strokeStyle='rgba(255,136,0,.6)';
-    ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(rx,ry);ctx.stroke();
-    ctx.restore();
-  }
-
-  // Draw WW gate
-  if(WW_A&&WW_B){
-    const[ax,ay]=tP(WW_A.lat,WW_A.lon);
-    const[bx,by]=tP(WW_B.lat,WW_B.lon);
-    ctx.save();
-    ctx.strokeStyle='rgba(0,255,136,.5)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
-    // WW gate bias indicator
-    const twd=getEffectiveTwd();
-    if(twd!=null){
-      const wwB=gateBias(WW_A,WW_B,twd);
-      if(wwB!=null){
-        const favX=wwB>0?bx:ax, favY=wwB>0?by:ay;
-        ctx.strokeStyle='#00ff88';ctx.lineWidth=3;
-        ctx.beginPath();ctx.arc(favX,favY,8,0,Math.PI*2);ctx.stroke();
+      function cacheEls() {
+        ["topbar","setupMode","replayMode","analysisMode","setupForm","setupErrors","detectedMarks",
+         "raceSelect","scrubber","cursorTime","replayStatus","courseCanvas","analysisCards","playPause"].forEach(id => {
+          els[id] = document.getElementById(id);
+        });
       }
-    }
-    ctx.restore();
-    drawMark(ctx,ax,ay,'#00ff88','WW-A',5);
-    drawMark(ctx,bx,by,'#00ff88','WW-B',5);
-  } else if(WWGATE){
-    const[gx,gy]=tP(WWGATE.lat,WWGATE.lon);
-    drawMark(ctx,gx,gy,'#00ff88','WW',7);
-  }
 
-  // Draw LW gate
-  if(LW_A&&LW_B){
-    const[ax,ay]=tP(LW_A.lat,LW_A.lon);
-    const[bx,by]=tP(LW_B.lat,LW_B.lon);
-    ctx.save();
-    ctx.strokeStyle='rgba(157,127,255,.5)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
-    const twd=getEffectiveTwd();
-    if(twd!=null){
-      const lwB=gateBias(LW_A,LW_B,twd);
-      if(lwB!=null){
-        const favX=lwB>0?bx:ax, favY=lwB>0?by:ay;
-        ctx.strokeStyle='#9d7fff';ctx.lineWidth=3;
-        ctx.beginPath();ctx.arc(favX,favY,8,0,Math.PI*2);ctx.stroke();
+      function bindUI() {
+        els.setupForm.addEventListener("submit", onSetupSubmit);
+        els.raceSelect.addEventListener("change", onRaceChange);
+        els.scrubber.addEventListener("input", onScrubInput);
+        document.getElementById("back5m").addEventListener("click", () => stepCursor(-300000));
+        document.getElementById("back30s").addEventListener("click", () => stepCursor(-30000));
+        document.getElementById("fwd30s").addEventListener("click", () => stepCursor(30000));
+        document.getElementById("fwd5m").addEventListener("click", () => stepCursor(300000));
+        els.playPause.addEventListener("click", togglePlay);
+
+        const canvas = els.courseCanvas;
+        ["click", "touchstart"].forEach(type => {
+          canvas.addEventListener(type, ev => {
+            ev.preventDefault();
+            const p = eventToCanvasPoint(ev, canvas);
+            moveReachMarkFromCanvasPoint(p.x, p.y);
+          }, { passive: false });
+        });
       }
-    }
-    ctx.restore();
-    drawMark(ctx,ax,ay,'#9d7fff','LW-A',5);
-    drawMark(ctx,bx,by,'#9d7fff','LW-B',5);
-  } else if(LWGATE){
-    const[gx,gy]=tP(LWGATE.lat,LWGATE.lon);
-    drawMark(ctx,gx,gy,'#9d7fff','LW',7);
-  }
 
-  // Draw RC
-  if(RC){
-    const[rcx,rcy]=tP(RC.lat,RC.lon);
-    drawMark(ctx,rcx,rcy,'#00d4ff','RC',6);
-  }
-  // Draw PIN
-  if(PIN){
-    const[pinx,piny]=tP(PIN.lat,PIN.lon);
-    drawMark(ctx,pinx,piny,'#ffd000','PIN',6);
-  }
+      function renderTabs() {
+        els.topbar.innerHTML = MODE_ORDER.map(mode =>
+          `<button class="tab-btn ${state.ui.mode === mode ? "active" : ""}" data-mode="${mode}">${capitalize(mode)}</button>`
+        ).join("");
+        els.topbar.querySelectorAll("button").forEach(btn => {
+          btn.addEventListener("click", () => setMode(btn.dataset.mode));
+        });
+      }
 
-  // Draw Reach Mark
-  if(rm){
-    const[rmx,rmy]=tP(rm.lat,rm.lon);
-    // Pulse ring for GPS-set mark
-    if(rm.source==='gps'){
-      ctx.save();
-      ctx.strokeStyle='rgba(0,212,255,.3)';ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.arc(rmx,rmy,14,0,Math.PI*2);ctx.stroke();
-      ctx.restore();
-    }
-    drawMark(ctx,rmx,rmy,'#ff8800','RM',8);
-    // Distances
-    if(RC){
-      const rcRm=Math.round(hav(RC.lat,RC.lon,rm.lat,rm.lon));
-      const[rcx,rcy]=tP(RC.lat,RC.lon);
-      const mx=(rcx+rmx)/2+8, my=(rcy+rmy)/2;
-      ctx.save();ctx.fillStyle='rgba(0,212,255,.7)';ctx.font='7px Share Tech Mono';ctx.textAlign='left';
-      ctx.fillText(`${rcRm}m`,mx,my);ctx.restore();
-    }
-    if(PIN){
-      const pinRm=Math.round(hav(PIN.lat,PIN.lon,rm.lat,rm.lon));
-      const[pinx,piny]=tP(PIN.lat,PIN.lon);
-      const mx=(pinx+rmx)/2-4, my=(piny+rmy)/2;
-      ctx.save();ctx.fillStyle='rgba(255,208,0,.7)';ctx.font='7px Share Tech Mono';ctx.textAlign='right';
-      ctx.fillText(`${pinRm}m`,mx,my);ctx.restore();
-    }
-  }
+      function setMode(mode) {
+        state.ui.mode = mode;
+        renderAll();
+      }
 
-  // Wind arrow in corner
-  const twd=getEffectiveTwd();
-  if(twd!=null){
-    const wx=W-26, wy=26;
-    ctx.save();
-    ctx.translate(wx,wy);ctx.rotate((twd)*D2R);
-    ctx.strokeStyle='rgba(0,212,255,.8)';ctx.fillStyle='rgba(0,212,255,.8)';
-    ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(0,-16);ctx.lineTo(0,16);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(0,-16);ctx.lineTo(-5,-6);ctx.lineTo(5,-6);ctx.closePath();ctx.fill();
-    ctx.restore();
-    ctx.fillStyle='rgba(0,212,255,.6)';ctx.font='7px Share Tech Mono';ctx.textAlign='center';
-    ctx.fillText(`${twd}°`,wx,wy+24);
-  }
+      function onSetupSubmit(e) {
+        e.preventDefault();
+        const form = new FormData(els.setupForm);
+        const parsed = parseSetup(form);
+        state.ui.errors = parsed.errors;
+        if (parsed.errors.length) return renderSetup();
 
-  // Compass N
-  ctx.fillStyle='rgba(96,128,160,.5)';ctx.font='bold 9px Share Tech Mono';ctx.textAlign='center';
-  ctx.fillText('N',W/2,14);
+        state.config = { ...state.config, ...parsed.config };
+        buildRaceOptions();
+        selectRace(state.config.gunTimes[0]?.raceNumber || null);
+        setMode("replay");
+      }
 
-  // Tap hint visibility
-  el('map-tap-hint').style.display='block';
-}
+      function parseSetup(form) {
+        const errors = [];
+        const tzRaw = (form.get("tzOffset") || "").toString().trim();
+        const tz = parseTimezoneOffset(tzRaw);
+        const gunParse = parseGunTimes((form.get("gunTimes") || "").toString());
+        if (!form.get("eventId").toString().trim()) errors.push("Event ID is required.");
+        if (tz == null) errors.push("Timezone must look like UTC-5, -5, UTC+1, +5.5.");
+        if (!gunParse.ok) errors.push(gunParse.error);
 
-function drawMark(ctx, x, y, color, label, r=6){
-  ctx.save();
-  ctx.fillStyle=color;
-  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle=color;
-  ctx.font='bold 8px Share Tech Mono';
-  ctx.textAlign='center';ctx.textBaseline='bottom';
-  ctx.strokeStyle='rgba(5,10,16,.8)';ctx.lineWidth=2;
-  ctx.strokeText(label,x,y-r-1);
-  ctx.fillText(label,x,y-r-1);
-  ctx.restore();
-}
+        return {
+          errors,
+          config: {
+            eventId: form.get("eventId").toString().trim(),
+            timezoneRaw: tzRaw,
+            timezoneOffsetMinutes: tz ?? 0,
+            serials: {
+              rc: parseSerialList(form.get("rcSerials")),
+              pin: parseSerialList(form.get("pinSerials")),
+              ww: parseSerialList(form.get("wwSerials")),
+              wl: parseSerialList(form.get("wlSerials"))
+            },
+            gunTimes: gunParse.gunTimes || []
+          }
+        };
+      }
 
-// ══════════════════════════════════════════════════════════════════
-//  HISTORY RENDER
-// ══════════════════════════════════════════════════════════════════
-function renderHistory(){
-  const h=STATE.raceHistory;
-  el('hist-count-badge').textContent=`${h.length} RACES`;
-  if(!h.length){
-    el('hist-content').innerHTML=`<div class="empty-state"><div class="empty-icon">◫</div><div class="empty-title">NO HISTORY</div><div class="empty-sub">Gun times not configured, or no races loaded yet.</div></div>`;
-    return;
-  }
+      function parseSerialList(raw) {
+        return (raw || "").toString().split(",").map(s => s.trim()).filter(Boolean);
+      }
 
-  let rows='';
-  for(const r of h){
-    const fmtBias=(v,rcLabel,pinLabel)=>{
-      if(v==null) return '<span style="color:var(--muted)">—</span>';
-      const ab=Math.abs(v);
-      return v>0
-        ?`<span class="b-rc">RC +${ab}m</span>`
-        :`<span class="b-pin">PIN +${ab}m</span>`;
-    };
-    const fmtGate=(v)=>{
-      if(v==null) return '<span style="color:var(--muted)">—</span>';
-      const ab=Math.abs(v);
-      return v>0
-        ?`<span class="good">STBD +${ab}m</span>`
-        :`<span class="warn-c">PORT +${ab}m</span>`;
-    };
-    rows+=`<tr>
-      <td><span class="hist-race-num">R${r.raceNum}</span></td>
-      <td>${r.courseAxis!=null?r.courseAxis.toFixed(1)+'°':'—'}</td>
-      <td>${fmtBias(r.slBias)}</td>
-      <td>${fmtGate(r.wwBias)}</td>
-      <td>${fmtGate(r.lwBias)}</td>
-      <td>${r.twd!=null?r.twd+'°':'—'}</td>
-    </tr>`;
-  }
+      function parseTimezoneOffset(raw) {
+        const normalized = raw.toUpperCase().replace("UTC", "").trim();
+        if (!normalized) return 0;
+        const num = Number(normalized);
+        if (Number.isNaN(num)) return null;
+        return Math.round(num * 60);
+      }
 
-  el('hist-content').innerHTML=`
-    <table class="hist-table">
-      <thead><tr>
-        <th>RACE</th>
-        <th>AXIS</th>
-        <th>LINE BIAS</th>
-        <th>WW BIAS</th>
-        <th>LW BIAS</th>
-        <th>TWD</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div style="font-size:8px;color:var(--muted);line-height:1.6;padding:6px 0">
-      Gate bias: +ve STBD = starboard/B buoy is further upwind<br>
-      Line bias: RC = committee end favoured
-    </div>`;
-}
+      function parseGunTimes(text) {
+        const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
+        if (!lines.length) return { ok: false, error: "Enter at least one gun time line." };
+        const gunTimes = [];
+        for (const line of lines) {
+          const [raceStr, msStr] = line.split(",").map(s => s?.trim());
+          const raceNumber = Number(raceStr);
+          const gunTimeMs = Number(msStr);
+          if (!Number.isInteger(raceNumber) || !Number.isFinite(gunTimeMs)) {
+            return { ok: false, error: `Invalid gun time line: ${line}` };
+          }
+          gunTimes.push({ raceNumber, gunTimeMs });
+        }
+        gunTimes.sort((a,b) => a.raceNumber - b.raceNumber);
+        return { ok: true, gunTimes };
+      }
 
-function renderDetectedSerials(){
-  const node=el('detected-serials');
-  if(!node) return;
-  const list=STATE.detectedMarkSNs||[];
-  if(!list.length){
-    node.innerHTML='<span class="serial-chip">No marks detected yet</span>';
-    return;
-  }
-  node.innerHTML=list.slice(0,16).map(item=>`<span class="serial-chip">SN ${item.sn} · ${item.count} pings</span>`).join('');
-}
+      function buildRaceOptions() {
+        els.raceSelect.innerHTML = state.config.gunTimes.map(g => `<option value="${g.raceNumber}">Race ${g.raceNumber}</option>`).join("");
+      }
 
-// ══════════════════════════════════════════════════════════════════
-//  GPS + MANUAL REACH MARK
-// ══════════════════════════════════════════════════════════════════
-let rmMode='gps';
-function setRMMode(mode){
-  rmMode=mode;
-  el('rm-gps-btn').className='rm-btn '+(mode==='gps'?'active':'');
-  el('rm-manual-btn').className='rm-btn '+(mode==='manual'?'active':'');
-  el('rm-gps-section').style.display=mode==='gps'?'block':'none';
-  el('rm-manual-section').style.display=mode==='manual'?'block':'none';
-}
+      function onRaceChange() { selectRace(Number(els.raceSelect.value)); }
 
-async function gpsSnapRM(){
-  const btn=el('gps-snap-btn');
-  btn.textContent='GETTING GPS…';
-  btn.style.opacity='0.6';
-  try{
-    const pos=await new Promise((res,rej)=>
-      navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000})
-    );
-    STATE.rm={lat:pos.coords.latitude, lon:pos.coords.longitude, source:'gps'};
-    btn.textContent='✓ GPS POSITION SET';
-    btn.style.background='var(--green)';
-    setTimeout(()=>{btn.textContent='TAP AT REACH MARK → SET POSITION';btn.style.background='';btn.style.opacity='';},3000);
-    updateUI();
-    renderDetectedSerials();
-    saveStateToStorage();
-  }catch(e){
-    btn.textContent='GPS ERROR — TRY AGAIN';
-    btn.style.background='var(--red)';
-    setTimeout(()=>{btn.textContent='TAP AT REACH MARK → SET POSITION';btn.style.background='';btn.style.opacity='';},3000);
-    alert('GPS error: '+(e.message||'location unavailable. Check browser permissions.'));
-  }
-}
+      function selectRace(raceNumber) {
+        if (!raceNumber) return;
+        state.replay.selectedRace = raceNumber;
+        const i = state.config.gunTimes.findIndex(g => g.raceNumber === raceNumber);
+        const startMs = state.config.gunTimes[i].gunTimeMs - 5 * 60000;
+        const next = state.config.gunTimes[i+1]?.gunTimeMs;
+        const endMs = (next ? next - 60000 : state.config.gunTimes[i].gunTimeMs + 35 * 60000);
+        state.replay.raceWindow = { startMs, endMs };
+        state.replay.cursorTimeMs = Math.max(startMs, state.config.gunTimes[i].gunTimeMs - 2 * 60000);
+        syncScrubberFromCursor();
+        refreshReplayWindow();
+        renderAll();
+      }
 
-function setManualRM(){
-  const lat=parseFloat(el('rm-lat').value);
-  const lon=parseFloat(el('rm-lon').value);
-  if(isNaN(lat)||isNaN(lon)){alert('Enter valid lat/lon coordinates');return;}
-  STATE.rm={lat,lon,source:'manual'};
-  updateUI();
-  saveStateToStorage();
-}
+      function onScrubInput() {
+        const p = Number(els.scrubber.value) / 100;
+        const { startMs, endMs } = state.replay.raceWindow;
+        if (!startMs || !endMs) return;
+        state.replay.cursorTimeMs = Math.round(startMs + (endMs - startMs) * p);
+        refreshReplayWindow();
+        renderReplay();
+        renderAnalysis();
+      }
 
-// Map tap to set reach mark
-document.getElementById('map-wrap').addEventListener('pointerup', function(e){
-  const canvas=this.querySelector('canvas');
-  if(!canvas) return;
-  const rect=canvas.getBoundingClientRect();
-  const xPx=(e.clientX-rect.left);
-  const yPx=(e.clientY-rect.top);
-  mapTapToRM(xPx,yPx,rect.width,rect.height);
-});
+      function syncScrubberFromCursor() {
+        const { startMs, endMs } = state.replay.raceWindow;
+        if (!startMs || !endMs || !state.replay.cursorTimeMs) return;
+        const p = (state.replay.cursorTimeMs - startMs) / (endMs - startMs);
+        els.scrubber.value = String(Math.max(0, Math.min(100, Math.round(p * 100))));
+      }
 
-function mapTapToRM(xPx,yPx,W,H){
-  const {WWGATE,LWGATE,RC,PIN,WW_A,WW_B,LW_A,LW_B,MID,rm}=STATE;
-  const keyPts=[];
-  [WWGATE,LWGATE,RC,PIN,WW_A,WW_B,LW_A,LW_B,MID].forEach(p=>{if(p)keyPts.push(p);});
-  if(!keyPts.length) return;
+      function stepCursor(deltaMs) {
+        if (!state.replay.cursorTimeMs) return;
+        const { startMs, endMs } = state.replay.raceWindow;
+        state.replay.cursorTimeMs = Math.max(startMs, Math.min(endMs, state.replay.cursorTimeMs + deltaMs));
+        syncScrubberFromCursor();
+        refreshReplayWindow();
+        renderReplay();
+        renderAnalysis();
+      }
 
-  const axisRef=(WWGATE&&LWGATE)?brg(LWGATE.lat,LWGATE.lon,WWGATE.lat,WWGATE.lon):0;
-  const THETA=axisRef*D2R;
-  const cLat=(WWGATE&&LWGATE)?(WWGATE.lat+LWGATE.lat)/2:(RC?.lat||0);
-  const cLon=(WWGATE&&LWGATE)?(WWGATE.lon+LWGATE.lon)/2:(RC?.lon||0);
+      let playTimer = null;
+      function togglePlay() {
+        state.ui.isPlaying = !state.ui.isPlaying;
+        if (state.ui.isPlaying) {
+          playTimer = setInterval(() => {
+            const before = state.replay.cursorTimeMs;
+            stepCursor(1000);
+            if (state.replay.cursorTimeMs === before) togglePlay();
+          }, 250);
+        } else {
+          clearInterval(playTimer);
+          playTimer = null;
+        }
+        els.playPause.textContent = state.ui.isPlaying ? "Pause" : "Play";
+      }
 
-  function toM(la,lo){return[(lo-cLon)*D2R*RE*Math.cos(cLat*D2R),(la-cLat)*D2R*RE];}
-  function rot(x,y){return[x*Math.cos(THETA)-y*Math.sin(THETA),x*Math.sin(THETA)+y*Math.cos(THETA)];}
-  function toRot(la,lo){return rot(...toM(la,lo));}
+      function refreshReplayWindow() {
+        const c = state.replay.cursorTimeMs;
+        const points = state.telemetry.points.filter(p => p.ts >= c - state.replay.window.beforeMs && p.ts <= c + state.replay.window.afterMs);
+        state.replay.activePoints = points;
+        deriveGeometry(points);
+        computeAnalysis();
+      }
 
-  const rk=keyPts.map(p=>toRot(p.lat,p.lon));
-  const mnX=Math.min(...rk.map(p=>p[0]));
-  const mxX=Math.max(...rk.map(p=>p[0]));
-  const mnY=Math.min(...rk.map(p=>p[1]));
-  const mxY=Math.max(...rk.map(p=>p[1]));
-  const pad=24;
-  const rangeX=mxX-mnX||100, rangeY=mxY-mnY||100;
-  const scaleX=(W-pad*2)/rangeX, scaleY=(H-pad*2)/rangeY;
-  const scale=Math.min(scaleX,scaleY);
-  const offX=pad+(W-pad*2-rangeX*scale)/2;
-  const offY=pad+(H-pad*2-rangeY*scale)/2;
+      function ensureDemoTelemetry() {
+        if (state.telemetry.points.length) return;
+        const baseTs = Date.now() - 86400000;
+        const rc = { lat: 41.0005, lon: -71.0012 };
+        const pin = { lat: 41.0005, lon: -71.0004 };
+        const wwA = { lat: 41.0092, lon: -71.0011 };
+        const wwB = { lat: 41.0092, lon: -71.0005 };
+        const wlA = { lat: 40.9955, lon: -71.0011 };
+        const wlB = { lat: 40.9955, lon: -71.0005 };
+        const reach = { lat: 41.0047, lon: -70.9986 };
 
-  // Invert canvas coords back to geo
-  const rx=(xPx-offX)/scale+mnX;
-  const ry=(H-yPx-offY)/scale+mnY;
-  // Unrotate
-  const THETA_INV=-THETA;
-  const ux=rx*Math.cos(THETA_INV)-ry*Math.sin(THETA_INV);
-  const uy=rx*Math.sin(THETA_INV)+ry*Math.cos(THETA_INV);
-  const lat=cLat+(uy/RE)/D2R;
-  const lon=cLon+(ux/(RE*Math.cos(cLat*D2R)))/D2R;
-  STATE.rm={lat,lon,source:'manual'};
-  updateUI();
-  saveStateToStorage();
-}
+        const marks = [
+          mkMark("rc", "RC1", rc, baseTs), mkMark("pin", "PIN1", pin, baseTs),
+          mkMark("ww", "WW1", wwA, baseTs), mkMark("ww", "WW2", wwB, baseTs),
+          mkMark("wl", "WL1", wlA, baseTs), mkMark("wl", "WL2", wlB, baseTs),
+          mkMark("reach", "RCH1", reach, baseTs)
+        ];
+        const tracks = mkBoatTrack(baseTs, wlA, wwA);
+        state.telemetry.points = marks.concat(tracks);
+        state.telemetry.detectedMarks = ["RC1", "PIN1", "WW1", "WW2", "WL1", "WL2", "RCH1"];
 
-// ══════════════════════════════════════════════════════════════════
-//  WIND OVERRIDE
-// ══════════════════════════════════════════════════════════════════
-function applyManualWind(){
-  const d=parseFloat(el('wind-manual-dir').value);
-  const s=parseFloat(el('wind-manual-spd').value);
-  if(isNaN(d)){alert('Enter a valid wind direction (0-360)');return;}
-  STATE.windManual={twd:((d%360)+360)%360, tws:isNaN(s)?12:s};
-  updateUI();
-  saveStateToStorage();
-}
-function clearManualWind(){
-  STATE.windManual=null;
-  el('wind-manual-dir').value='';
-  el('wind-manual-spd').value='';
-  updateUI();
-  saveStateToStorage();
-}
+        const gun1 = baseTs + 20 * 60000;
+        const gun2 = baseTs + 50 * 60000;
+        state.config.gunTimes = [{ raceNumber: 1, gunTimeMs: gun1 }, { raceNumber: 2, gunTimeMs: gun2 }];
+        buildRaceOptions();
+        selectRace(1);
+      }
 
+      function mkMark(kind, serial, pos, ts) { return { type: "mark", kind, serial, lat: pos.lat, lon: pos.lon, ts }; }
+      function mkBoatTrack(baseTs, start, end) {
+        const out = [];
+        for (let i = 0; i < 420; i++) {
+          const t = i / 419;
+          out.push({
+            type: "boat", boatId: "demo", ts: baseTs + i * 15000,
+            lat: start.lat + (end.lat - start.lat) * t + Math.sin(i / 10) * 0.00008,
+            lon: start.lon + (end.lon - start.lon) * t + Math.cos(i / 12) * 0.00006
+          });
+        }
+        return out;
+      }
 
-function parseTzOffsetToMinutes(raw){
-  const txt=String(raw||'').trim().toUpperCase().replace('UTC','').replace(/\s+/g,'');
-  if(!txt) return -300;
-  const m=txt.match(/^([+-])?(\d{1,2})(?::?(\d{2}))?$/);
-  if(!m) return -300;
-  const sign=(m[1]==='-')?-1:1;
-  const hh=parseInt(m[2]||'0',10);
-  const mm=parseInt(m[3]||'0',10);
-  return sign*(hh*60+mm);
-}
-function formatOffsetLabel(mins){
-  const sign=mins<0?'-':'+';
-  const abs=Math.abs(mins);
-  const hh=Math.floor(abs/60);
-  const mm=abs%60;
-  return `UTC${sign}${hh}${mm?':'+String(mm).padStart(2,'0'):''}`;
-}
-function formatEventTs(ts, opts={}){
-  if(!ts) return '—';
-  const d=new Date(ts + (STATE.eventTzOffsetMin||0)*60000);
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const month=months[d.getUTCMonth()];
-  const day=d.getUTCDate();
-  const hh=String(d.getUTCHours()).padStart(2,'0');
-  const mm=String(d.getUTCMinutes()).padStart(2,'0');
-  const ss=String(d.getUTCSeconds()).padStart(2,'0');
-  const time=opts.withSeconds===false?`${hh}:${mm}`:`${hh}:${mm}:${ss}`;
-  const core=opts.date===false?time:`${month} ${day} ${time}`;
-  return opts.includeOffset===false?core:`${core} ${formatOffsetLabel(STATE.eventTzOffsetMin||0)}`;
-}
-function formatReplayTs(ts){
-  if(!ts) return '—';
-  return formatEventTs(ts, {withSeconds:true, date:true});
-}
-function computeReplayRange(){
-  const guns=getSortedGuns();
-  if(guns.length){
-    STATE.replayRangeMinTs=Math.min(...guns.map(g=>g[1]))-600000;
-    STATE.replayRangeMaxTs=Math.max(...guns.map(g=>g[1]))+3600000;
-  }else if(STATE.selectedGunTs){
-    STATE.replayRangeMinTs=STATE.selectedGunTs-600000;
-    STATE.replayRangeMaxTs=STATE.selectedGunTs+3600000;
-  }else if(STATE.replayCursorTs){
-    STATE.replayRangeMinTs=STATE.replayCursorTs-1800000;
-    STATE.replayRangeMaxTs=STATE.replayCursorTs+1800000;
-  }else{
-    const now=Date.now();
-    STATE.replayRangeMinTs=now-1800000;
-    STATE.replayRangeMaxTs=now+1800000;
-  }
-  if(STATE.replayRangeMaxTs<=STATE.replayRangeMinTs) STATE.replayRangeMaxTs=STATE.replayRangeMinTs+3600000;
-}
-function clampReplayCursor(ts){
-  computeReplayRange();
-  return Math.max(STATE.replayRangeMinTs, Math.min(STATE.replayRangeMaxTs, ts));
-}
-function syncReplayCursor(resetToGun=false){
-  syncSelectedGun();
-  computeReplayRange();
-  if(resetToGun && STATE.selectedGunTs) STATE.replayCursorTs=STATE.selectedGunTs;
-  if(STATE.replayCursorTs==null){
-    STATE.replayCursorTs=STATE.selectedGunTs || STATE.replayRangeMinTs;
-  }
-  STATE.replayCursorTs=clampReplayCursor(STATE.replayCursorTs);
-}
-function updateReplayControls(){
-  const bar=el('replay-toolbar');
-  if(!bar) return;
-  const active=STATE.mode==='replay';
-  bar.classList.toggle('visible', active);
-  if(!active) return;
-  syncReplayCursor(false);
-  const slider=el('replay-slider');
-  const span=(STATE.replayRangeMaxTs-STATE.replayRangeMinTs)||1;
-  const pct=Math.round(((STATE.replayCursorTs-STATE.replayRangeMinTs)/span)*1000);
-  slider.min='0'; slider.max='1000'; slider.value=String(Math.max(0,Math.min(1000,pct)));
-  el('replay-cursor-label').textContent=formatReplayTs(STATE.replayCursorTs);
-  el('replay-range').textContent=`${formatReplayTs(STATE.replayRangeMinTs)} → ${formatReplayTs(STATE.replayRangeMaxTs)}`;
-}
-function setReplayCursorFromSlider(){
-  const slider=el('replay-slider');
-  if(!slider) return;
-  computeReplayRange();
-  const frac=(parseFloat(slider.value)||0)/1000;
-  STATE.replayCursorTs=Math.round(STATE.replayRangeMinTs + frac*(STATE.replayRangeMaxTs-STATE.replayRangeMinTs));
-  updateReplayControls();
-  saveStateToStorage();
-  if(STATE.mode==='replay') poll();
-}
-function nudgeReplayCursor(ms){
-  syncReplayCursor(false);
-  STATE.replayCursorTs=clampReplayCursor((STATE.replayCursorTs||STATE.selectedGunTs||Date.now())+ms);
-  updateReplayControls();
-  saveStateToStorage();
-  if(STATE.mode==='replay') poll();
-}
+      function deriveGeometry(points) {
+        const marksByKind = { rc: [], pin: [], ww: [], wl: [], reach: [] };
+        points.filter(p => p.type === "mark").forEach(m => marksByKind[m.kind]?.push(m));
+        const pick = arr => arr[0] ? { lat: arr[0].lat, lon: arr[0].lon, confidence: "Measured" } : null;
 
-function getSortedGuns(){
-  return [...(STATE.guns||[])].sort((a,b)=>(a[0]-b[0]) || (a[1]-b[1]));
-}
-function syncSelectedGun(){
-  const guns=getSortedGuns();
-  if(!guns.length){
-    STATE.selectedRaceNum=null;
-    STATE.selectedGunTs=null;
-    if(STATE.mode==='replay'&&STATE.replayCursorTs==null) STATE.replayCursorTs=Date.now();
-    return;
-  }
-  let pick=null;
-  if(STATE.selectedRaceNum!=null){
-    pick=guns.find(g=>Number(g[0])===Number(STATE.selectedRaceNum))||null;
-  }
-  if(!pick) pick=guns[guns.length-1];
-  STATE.selectedRaceNum=pick[0];
-  STATE.selectedGunTs=pick[1];
-}
-function fillReplayRaceOptions(){
-  const sel=el('cfg-selected-race');
-  if(!sel) return;
-  const current=STATE.selectedRaceNum!=null?String(STATE.selectedRaceNum):'';
-  const guns=getSortedGuns();
-  sel.innerHTML='<option value="">Auto / latest</option>'+guns.map(([raceNum,gunTs])=>{
-    return `<option value="${raceNum}">R${raceNum} — ${formatEventTs(gunTs, {withSeconds:false})}</option>`;
-  }).join('');
-  const match=guns.some(([raceNum])=>String(raceNum)===current);
-  sel.value=match?current:'';
-}
-function onModeChange(){
-  const live=el('cfg-mode')?.value!=='replay';
-  const raceSel=el('cfg-selected-race');
-  if(raceSel) raceSel.disabled=live;
-  updateReplayControls();
-}
-function setReplayRaceFromUI(){
-  const val=el('cfg-selected-race')?.value;
-  STATE.selectedRaceNum=val?parseInt(val):null;
-  syncSelectedGun();
-  syncReplayCursor(true);
-  updateReplayControls();
-  saveStateToStorage();
-  if(STATE.mode==='replay'){
-    stopPolling();
-    startPolling();
-  }
-}
-function getPollWindow(){
-  const windowMs=(STATE.windowMin||5)*60*1000;
-  if(STATE.mode==='replay'){
-    syncReplayCursor(false);
-    const cursor=STATE.replayCursorTs || STATE.selectedGunTs;
-    if(!cursor) throw new Error('Replay mode needs gun times');
-    return {
-      after: cursor-windowMs,
-      before: cursor+windowMs,
-      status: 'REPLAY'
-    };
-  }
-  const now=Date.now();
-  return {
-    after: now-windowMs,
-    before: now+10000,
-    status: 'LIVE'
-  };
-}
+        state.geometry.rc = pick(marksByKind.rc);
+        state.geometry.pin = pick(marksByKind.pin);
+        state.geometry.wwA = pick(marksByKind.ww);
+        state.geometry.wwB = marksByKind.ww[1] ? { lat: marksByKind.ww[1].lat, lon: marksByKind.ww[1].lon, confidence: "Measured" } : null;
+        state.geometry.wlA = pick(marksByKind.wl);
+        state.geometry.wlB = marksByKind.wl[1] ? { lat: marksByKind.wl[1].lat, lon: marksByKind.wl[1].lon, confidence: "Measured" } : null;
+        if (!state.geometry.reach) state.geometry.reach = pick(marksByKind.reach);
+        if (state.geometry.rc && state.geometry.pin) {
+          state.geometry.midpoint = midpoint(state.geometry.rc, state.geometry.pin);
+        }
+        state.geometry.courseAxisDeg = computeCourseAxis();
+        state.geometry.gateAxisDeg = computeGateAxis();
+      }
 
-// ══════════════════════════════════════════════════════════════════
-//  POLL TIMER
-// ══════════════════════════════════════════════════════════════════
-function startPolling(){
-  stopPolling();
-  if(STATE.mode==='replay'){
-    syncReplayCursor(false);
-    updateReplayControls();
-    el('poll-countdown').textContent='scrub to move';
-    poll();
-    el('update-banner').classList.remove('hidden');
-    return;
-  }
-  poll(); // immediate
-  STATE.pollTimer=setInterval(poll, (STATE.pollInterval||30)*1000);
-  STATE.countdownTimer=setInterval(()=>{
-    if(STATE.lastPoll){
-      const elapsed=Math.floor((Date.now()-STATE.lastPoll)/1000);
-      const remaining=Math.max(0,(STATE.pollInterval||30)-elapsed);
-      el('poll-countdown').textContent=`next in ${remaining}s`;
-    }
-  },1000);
-  el('update-banner').classList.remove('hidden');
-}
-function stopPolling(){
-  if(STATE.pollTimer) clearInterval(STATE.pollTimer);
-  if(STATE.countdownTimer) clearInterval(STATE.countdownTimer);
-}
-async function manualRefresh(){
-  const btn=el('refresh-btn');
-  btn.classList.add('spinning');
-  await poll();
-  btn.classList.remove('spinning');
-  // Reset countdown
-  if(STATE.pollTimer){stopPolling();startPolling();}
-}
+      function computeCourseAxis() {
+        const wlMid = gateMid(state.geometry.wlA, state.geometry.wlB);
+        const wwMid = gateMid(state.geometry.wwA, state.geometry.wwB);
+        if (!wlMid || !wwMid) return null;
+        return bearingDeg(wlMid, wwMid);
+      }
 
-// ══════════════════════════════════════════════════════════════════
-//  STATUS & UI HELPERS
-// ══════════════════════════════════════════════════════════════════
-function setStatus(type, text){
-  const dot=el('status-dot');
-  const txt=el('status-text');
-  txt.textContent=text;
-  dot.className='pulse-dot '+(type==='ok'?'':type==='err'?'err':type==='polling'?'warn':'idle');
-}
-function showLoadingBar(pct){
-  const bar=el('loading-bar');
-  bar.style.width=pct+'%';
-  if(pct>=100) bar.style.opacity='0'; else bar.style.opacity='1';
-}
-function showDriftAlert(msg){
-  ['drift-alert','drift-alert-map'].forEach(id=>{
-    const el2=document.getElementById(id);
-    if(!el2) return;
-    el2.classList.remove('hidden');
-    el2.querySelector('span').textContent=msg;
-  });
-}
-function hideDriftAlert(){
-  ['drift-alert','drift-alert-map'].forEach(id=>{
-    const el2=document.getElementById(id);
-    if(el2) el2.classList.add('hidden');
-  });
-}
-function updateUpdateBanner(){
-  if(STATE.lastPoll){
-    const d=new Date(STATE.lastPoll);
-    if(STATE.mode==='replay'){
-      const raceLabel=STATE.selectedRaceNum!=null?`R${STATE.selectedRaceNum}`:'Replay';
-      el('last-update-text').textContent=`${raceLabel} @ ${formatReplayTs(STATE.replayCursorTs||STATE.selectedGunTs)}`;
-    }else{
-      el('last-update-text').textContent=`Updated ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
-    }
-    el('cfg-last-poll').textContent=formatEventTs(STATE.mode==='replay' ? (STATE.replayCursorTs||STATE.selectedGunTs||STATE.lastPoll) : STATE.lastPoll, {withSeconds:true, date:false});
-  }
-  updateReplayControls();
-}
-function el(id){return document.getElementById(id)}
+      function computeGateAxis() {
+        if (state.geometry.rc && state.geometry.pin) return bearingDeg(state.geometry.rc, state.geometry.pin);
+        const wlMid = gateMid(state.geometry.wlA, state.geometry.wlB);
+        const wwMid = gateMid(state.geometry.wwA, state.geometry.wwB);
+        if (wlMid && wwMid) return bearingDeg(wlMid, wwMid) + 90;
+        return null;
+      }
 
-function switchTab(name){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector(`[data-panel="${name}"]`).classList.add('active');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  el('panel-'+name).classList.add('active');
-  if(name==='map') drawMap();
-}
+      function computeAnalysis() {
+        const g = state.geometry;
+        const metrics = [];
+        const wlMid = gateMid(g.wlA, g.wlB);
+        const wwMid = gateMid(g.wwA, g.wwB);
+        const optimal = computeOptimalStartPoint(g.rc, g.pin, g.reach);
+        metrics.push(card(
+          "Optimal start line point",
+          optimal?.label || "N/A",
+          optimal?.detail || "Need RC, pin, and reach mark",
+          optimal?.confidence || "Low confidence"
+        ));
 
-// ══════════════════════════════════════════════════════════════════
-//  CONFIG & PERSISTENCE
-// ══════════════════════════════════════════════════════════════════
-function parseSNs(str){
-  if(!str||!str.trim()) return [];
-  return str.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
-}
+        metrics.push(card("WL gate bias in meters", fmtNum(computeGateBias(g.wlA, g.wlB, g.reach)), "Positive favors starboard side", confidenceFor(g.wlA && g.wlB && g.reach)));
 
-function saveStateToStorage(){
-  try{
-    const toSave={
-      eventId:STATE.eventId, raceDay:STATE.raceDay, division:STATE.division, mode:STATE.mode,
-      pollInterval:STATE.pollInterval, windowMin:STATE.windowMin,
-      guns:STATE.guns, selectedRaceNum:STATE.selectedRaceNum, selectedGunTs:STATE.selectedGunTs, replayCursorTs:STATE.replayCursorTs, gateSNs:STATE.gateSNs, eventTzOffsetMin:STATE.eventTzOffsetMin,
-      rm:STATE.rm, windManual:STATE.windManual,
-      marks:STATE.marks
-    };
-    localStorage.setItem('m32tac_state', JSON.stringify(toSave));
-  }catch(e){}
-}
+        const pinToReach = g.pin && g.reach ? distanceMeters(g.pin, g.reach) : null;
+        const rcToReach = g.rc && g.reach ? distanceMeters(g.rc, g.reach) : null;
+        metrics.push(card(
+          "Start line distances to reach",
+          `${fmtNum(pinToReach)}m / ${fmtNum(rcToReach)}m`,
+          `Difference: ${fmtNum(pinToReach != null && rcToReach != null ? pinToReach - rcToReach : null)}m (pin - RC)`,
+          confidenceFor(g.pin && g.rc && g.reach)
+        ));
 
-function loadStateFromStorage(){
-  try{
-    const raw=localStorage.getItem('m32tac_state');
-    if(!raw) return false;
-    const s=JSON.parse(raw);
-    Object.assign(STATE,s);
-    return true;
-  }catch(e){ return false; }
-}
+        const twa = (g.midpoint && g.reach && g.courseAxisDeg != null) ? signedAngleDeg(g.courseAxisDeg, bearingDeg(g.midpoint, g.reach)) : null;
+        metrics.push(card("TWA midpoint to reach", `${fmtNum(twa)}°`, "Angle between course axis and midpoint→reach vector", confidenceFor(g.midpoint && g.reach && g.courseAxisDeg != null)));
 
-function saveConfig(){
-  STATE.eventId=el('cfg-eventid').value.trim();
-  STATE.raceDay=parseInt(el('cfg-raceday').value)||1;
-  STATE.division=el('cfg-division').value.trim()||'M32';
-  STATE.eventTzOffsetMin=parseTzOffsetToMinutes(el('cfg-tzoffset').value);
-  STATE.mode=el('cfg-mode').value||'live';
-  STATE.pollInterval=parseInt(el('cfg-poll').value)||30;
-  STATE.windowMin=parseInt(el('cfg-window').value)||5;
-  // Parse guns
-  const gunsRaw=el('cfg-guns').value.trim();
-  STATE.guns=gunsRaw.split('\n').map(l=>{
-    const parts=l.trim().split(',');
-    if(parts.length>=2){
-      const n=parseInt(parts[0].trim());
-      const ts=parseInt(parts[1].trim());
-      if(!isNaN(n)&&!isNaN(ts)) return [n,ts];
-    }
-    return null;
-  }).filter(Boolean);
+        metrics.push(card("WW gate bias in meters", fmtNum(computeGateBias(g.wwA, g.wwB, g.reach)), "Positive favors starboard side", confidenceFor(g.wwA && g.wwB && g.reach)));
 
-  STATE.gateSNs={
-    WW:parseSNs(el('cfg-ww').value),
-    LW:parseSNs(el('cfg-lw').value),
-    RC_SNS:parseSNs(el('cfg-rc').value),
-    PIN_SN:parseSNs(el('cfg-pin').value)[0]||null
-  };
+        metrics.push(card(
+          "Course axis and gate axis",
+          `${fmtNum(g.courseAxisDeg)}° / ${fmtNum(g.gateAxisDeg)}°`,
+          `Course from WL→WW and gate orientation`,
+          confidenceFor(g.courseAxisDeg != null && g.gateAxisDeg != null)
+        ));
 
-  const raceSelVal=el('cfg-selected-race').value;
-  STATE.selectedRaceNum=raceSelVal?parseInt(raceSelVal):null;
-  syncSelectedGun();
-  syncReplayCursor(STATE.mode==='replay');
-  fillReplayRaceOptions();
-  onModeChange();
-  updateReplayControls();
+        state.analysis.metrics = metrics;
+      }
 
-  el('hdr-sub').textContent=STATE.eventId?`EVENT: ${STATE.eventId.substring(0,12)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${formatOffsetLabel(STATE.eventTzOffsetMin)}`:'—';
-  saveStateToStorage();
-  stopPolling();
-  startPolling();
-  renderDetectedSerials();
-  switchTab('data');
-  alert(`✓ Config saved. ${STATE.mode==='replay'?'Replay':'Polling'} started.`);
-}
+      function computeOptimalStartPoint(rc, pin, reach) {
+        if (!rc || !pin || !reach) return null;
+        const dPin = distanceMeters(pin, reach);
+        const dRc = distanceMeters(rc, reach);
+        if (Math.abs(dPin - dRc) < 3) return { label: "Middle", detail: "Line appears close to square", confidence: "Measured" };
+        if (dPin < dRc) return { label: "Pin favored", detail: `Pin shorter by ${fmtNum(dRc - dPin)}m`, confidence: "Measured" };
+        return { label: "Boat favored", detail: `RC shorter by ${fmtNum(dPin - dRc)}m`, confidence: "Measured" };
+      }
 
-function fillConfigUI(){
-  el('cfg-eventid').value=STATE.eventId||'';
-  el('cfg-raceday').value=STATE.raceDay||1;
-  el('cfg-division').value=STATE.division||'M32';
-  el('cfg-tzoffset').value=formatOffsetLabel(STATE.eventTzOffsetMin||0);
-  el('cfg-mode').value=STATE.mode||'live';
-  el('cfg-poll').value=STATE.pollInterval||30;
-  el('cfg-window').value=STATE.windowMin||5;
-  el('cfg-ww').value=(STATE.gateSNs?.WW||[]).join(', ');
-  el('cfg-lw').value=(STATE.gateSNs?.LW||[]).join(', ');
-  el('cfg-rc').value=(STATE.gateSNs?.RC_SNS||[]).join(', ');
-  el('cfg-pin').value=STATE.gateSNs?.PIN_SN!=null?STATE.gateSNs.PIN_SN:'';
-  el('cfg-guns').value=(STATE.guns||[]).map(g=>g.join(',')).join('\n');
-  syncSelectedGun();
-  syncReplayCursor(false);
-  fillReplayRaceOptions();
-  onModeChange();
-  updateReplayControls();
-}
+      function computeGateBias(a, b, target) {
+        if (!a || !b || !target) return null;
+        return distanceMeters(a, target) - distanceMeters(b, target);
+      }
 
-function resetAll(){
-  if(!confirm('Reset all data including saved marks, wind, and config?')) return;
-  localStorage.removeItem('m32tac_state');
-  location.reload();
-}
+      function card(label, value, sub, confidence) {
+        return { label, value: String(value ?? "N/A"), sub, confidence };
+      }
 
-// ══════════════════════════════════════════════════════════════════
-//  SETUP FLOW
-// ══════════════════════════════════════════════════════════════════
-function parseEventIdFromUrl(input){
-  const m=input.match(/\/watch\/([^\/\?]+)/);
-  if(m) return m[1];
-  if(input.match(/^[a-zA-Z0-9_\-]{10,30}$/)) return input.trim();
-  return null;
-}
+      function renderAll() {
+        renderTabs();
+        renderSetup();
+        renderReplay();
+        renderAnalysis();
+      }
 
-function startApp(){
-  const rawUrl=el('setup-url').value.trim();
-  const eventId=parseEventIdFromUrl(rawUrl)||rawUrl;
-  if(!eventId){
-    el('setup-error').textContent='Enter a valid RaceSense URL or Event ID';
-    el('setup-error').style.display='block';
-    return;
-  }
-  STATE.eventId=eventId;
-  STATE.raceDay=parseInt(el('setup-raceday').value)||1;
-  STATE.eventTzOffsetMin=parseTzOffsetToMinutes(el('setup-tzoffset').value);
-  STATE.mode=el('setup-mode').value||'live';
-  const gunsRaw=(el('setup-guns')?.value||'').trim();
-  STATE.guns=gunsRaw.split('\n').map(l=>{
-    const parts=l.trim().split(',');
-    if(parts.length>=2){
-      const n=parseInt(parts[0].trim());
-      const ts=parseInt(parts[1].trim());
-      if(!isNaN(n)&&!isNaN(ts)) return [n,ts];
-    }
-    return null;
-  }).filter(Boolean);
+      function renderSetup() {
+        els.setupMode.classList.toggle("active", state.ui.mode === "setup");
+        els.replayMode.classList.toggle("active", state.ui.mode === "replay");
+        els.analysisMode.classList.toggle("active", state.ui.mode === "analysis");
+        els.setupErrors.innerHTML = state.ui.errors.map(e => `<div>${e}</div>`).join("");
+        els.detectedMarks.textContent = `Detected marks: ${state.telemetry.detectedMarks.join(", ") || "none loaded yet."}`;
+      }
 
-  STATE.gateSNs={
-    WW:parseSNs(el('setup-ww').value),
-    LW:parseSNs(el('setup-lw').value),
-    RC_SNS:parseSNs(el('setup-rc').value),
-    PIN_SN:parseSNs(el('setup-pin').value)[0]||null
-  };
+      function renderReplay() {
+        const c = state.replay.cursorTimeMs;
+        const start = state.replay.raceWindow.startMs;
+        const end = state.replay.raceWindow.endMs;
+        els.cursorTime.textContent = c ? `Replay cursor (event time): ${formatEventTime(c)}` : "Pick race in setup.";
+        els.replayStatus.textContent = c
+          ? `Window: ${Math.round(state.replay.window.beforeMs/1000)}s before / ${Math.round(state.replay.window.afterMs/1000)}s after • ${state.replay.activePoints.length} points`
+          : "No replay data loaded.";
+        if (start && end) syncScrubberFromCursor();
+        drawCourse();
+      }
 
-  syncSelectedGun();
-  syncReplayCursor(true);
-  el('hdr-sub').textContent=`EVENT: ${eventId.substring(0,14)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${formatOffsetLabel(STATE.eventTzOffsetMin)}`;
-  saveStateToStorage();
-  launchApp();
-}
+      function renderAnalysis() {
+        const html = state.analysis.metrics.map(m => `
+          <article class="metric-card">
+            <div class="metric-label">${m.label}</div>
+            <div class="metric-value">${m.value}</div>
+            <div class="metric-sub">${m.sub}</div>
+            <div class="chip">${m.confidence}</div>
+          </article>
+        `).join("");
+        els.analysisCards.innerHTML = html || "<div class='status'>No analysis yet.</div>";
+      }
 
-function launchApp(){
-  el('setup-overlay').classList.add('hidden');
-  el('app').style.display='flex';
-  syncSelectedGun();
-  fillConfigUI();
-  updateReplayControls();
-  startPolling();
-  renderDetectedSerials();
-}
+      function drawCourse() {
+        const canvas = els.courseCanvas;
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
 
-// ══════════════════════════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════════════════════════
-window.addEventListener('load', ()=>{
-  if(loadStateFromStorage()&&STATE.eventId){
-    launchApp();
-  }
-  if(STATE.eventId) el('setup-url').value=STATE.eventId;
-  if(el('setup-mode')) el('setup-mode').value=STATE.mode||'live';
-  if(el('setup-tzoffset')) el('setup-tzoffset').value=formatOffsetLabel(STATE.eventTzOffsetMin||0);
-  if(el('setup-guns')) el('setup-guns').value=(STATE.guns||[]).map(g=>g.join(',')).join('\n');
-  if(STATE.gateSNs?.WW?.length) el('setup-ww').value=STATE.gateSNs.WW.join(', ');
-  if(STATE.gateSNs?.LW?.length) el('setup-lw').value=STATE.gateSNs.LW.join(', ');
-  if(STATE.gateSNs?.RC_SNS?.length) el('setup-rc').value=STATE.gateSNs.RC_SNS.join(', ');
-  if(STATE.gateSNs?.PIN_SN) el('setup-pin').value=STATE.gateSNs.PIN_SN;
+        ctx.clearRect(0, 0, rect.width, rect.height);
 
-  const setupForm=el('setup-form');
-  if(setupForm){
-    setupForm.addEventListener('submit', ev=>{ ev.preventDefault(); startApp(); });
-  }
-  const setupBtn=el('setup-btn');
-  if(setupBtn){
-    setupBtn.addEventListener('pointerup', ev=>{ ev.preventDefault(); startApp(); });
-    setupBtn.addEventListener('click', ev=>{ ev.preventDefault(); startApp(); });
-  }
-  ['setup-url','setup-raceday','setup-guns','setup-ww','setup-lw','setup-rc','setup-pin','setup-tzoffset'].forEach(id=>{
-    const node=el(id); if(!node) return;
-    node.addEventListener('keydown', ev=>{ if(ev.key==='Enter' && id!=='setup-guns'){ ev.preventDefault(); startApp(); } });
-  });
-  el('replay-slider')?.addEventListener('input', setReplayCursorFromSlider);
-  el('replay-back-big')?.addEventListener('click', ()=>nudgeReplayCursor(-300000));
-  el('replay-back-small')?.addEventListener('click', ()=>nudgeReplayCursor(-30000));
-  el('replay-fwd-small')?.addEventListener('click', ()=>nudgeReplayCursor(30000));
-  el('replay-fwd-big')?.addEventListener('click', ()=>nudgeReplayCursor(300000));
-});
+        const g = state.geometry;
+        const pts = [g.rc,g.pin,g.wwA,g.wwB,g.wlA,g.wlB,g.reach].filter(Boolean);
+        if (!pts.length) {
+          ctx.fillStyle = "#9cb4d3";
+          ctx.fillText("No geometry available in current telemetry window.", 12, 22);
+          return;
+        }
 
-// Resize redraw
-window.addEventListener('resize', ()=>{ if(el('panel-map').classList.contains('active')) drawMap(); });
-</script>
+        const projector = makeCourseProjector(pts, rect.width, rect.height, g.wlA, g.wlB, g.wwA, g.wwB);
+        const drawMark = (p, color, label) => {
+          if (!p) return;
+          const xy = projector(p);
+          ctx.beginPath(); ctx.arc(xy.x, xy.y, 6, 0, Math.PI*2); ctx.fillStyle = color; ctx.fill();
+          ctx.fillStyle = "#eaf3ff"; ctx.font = "12px sans-serif"; ctx.fillText(label, xy.x + 8, xy.y - 8);
+        };
+
+        drawSegment(ctx, projector, g.rc, g.pin, "#77b2ff", 2);
+        drawSegment(ctx, projector, g.wlA, g.wlB, "#38bdf8", 2);
+        drawSegment(ctx, projector, g.wwA, g.wwB, "#38bdf8", 2);
+        drawSegment(ctx, projector, gateMid(g.wlA,g.wlB), gateMid(g.wwA,g.wwB), "#8be9fd", 1);
+
+        const trackPts = state.replay.activePoints.filter(p => p.type === "boat").slice(-100);
+        if (trackPts.length > 1) {
+          ctx.strokeStyle = "#fcd34d";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          trackPts.forEach((p,i) => {
+            const xy = projector(p);
+            if (i === 0) ctx.moveTo(xy.x, xy.y); else ctx.lineTo(xy.x, xy.y);
+          });
+          ctx.stroke();
+        }
+
+        drawMark(g.rc, "#7dd3fc", "RC");
+        drawMark(g.pin, "#a7f3d0", "PIN");
+        drawMark(g.wwA, "#f472b6", "WW A");
+        drawMark(g.wwB, "#f472b6", "WW B");
+        drawMark(g.wlA, "#f59e0b", "WL A");
+        drawMark(g.wlB, "#f59e0b", "WL B");
+        drawMark(g.reach, "#fb7185", "REACH");
+
+        canvas._projector = projector;
+      }
+
+      function makeCourseProjector(points, width, height, wlA, wlB, wwA, wwB) {
+        const wlMid = gateMid(wlA, wlB);
+        const wwMid = gateMid(wwA, wwB);
+        const anchor = wlMid || points[0];
+        const courseBearing = (wlMid && wwMid) ? bearingDeg(wlMid, wwMid) : 0;
+        const rotation = (0 - courseBearing) * Math.PI/180;
+
+        const local = points.map(p => toLocalMeters(anchor, p));
+        const rotated = local.map(pt => rotate(pt.x, pt.y, rotation));
+        const xs = rotated.map(p => p.x), ys = rotated.map(p => p.y);
+        const minX = Math.min(...xs), maxX = Math.max(...xs);
+        const minY = Math.min(...ys), maxY = Math.max(...ys);
+
+        const pad = 26;
+        const spanX = Math.max(1, maxX - minX);
+        const spanY = Math.max(1, maxY - minY);
+        const scale = Math.min((width - pad * 2) / spanX, (height - pad * 2) / spanY);
+
+        return function project(p) {
+          const raw = toLocalMeters(anchor, p);
+          const r = rotate(raw.x, raw.y, rotation);
+          return {
+            x: pad + (r.x - minX) * scale,
+            y: height - (pad + (r.y - minY) * scale)
+          };
+        };
+      }
+
+      function moveReachMarkFromCanvasPoint(x, y) {
+        const canvas = els.courseCanvas;
+        const projector = canvas._projector;
+        const g = state.geometry;
+        if (!projector || !g.wlA) return;
+
+        const anchor = gateMid(g.wlA, g.wlB) || g.wlA;
+        const courseBearing = (gateMid(g.wlA,g.wlB) && gateMid(g.wwA,g.wwB)) ? bearingDeg(gateMid(g.wlA,g.wlB), gateMid(g.wwA,g.wwB)) : 0;
+        const rotation = (0 - courseBearing) * Math.PI/180;
+
+        const pts = [g.rc,g.pin,g.wwA,g.wwB,g.wlA,g.wlB,g.reach].filter(Boolean).map(p => rotate(toLocalMeters(anchor,p).x,toLocalMeters(anchor,p).y,rotation));
+        const rect = canvas.getBoundingClientRect();
+        const pad = 26;
+        const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+        const minX = Math.min(...xs), maxX = Math.max(...xs);
+        const minY = Math.min(...ys), maxY = Math.max(...ys);
+        const scale = Math.min((rect.width - pad * 2) / Math.max(1, maxX - minX), (rect.height - pad * 2) / Math.max(1, maxY - minY));
+
+        const rx = ((x - pad) / scale) + minX;
+        const ry = (((rect.height - y) - pad) / scale) + minY;
+        const unrot = rotate(rx, ry, -rotation);
+        const moved = fromLocalMeters(anchor, unrot.x, unrot.y);
+
+        state.geometry.reach = { ...moved, confidence: "Manual" };
+        computeAnalysis();
+        renderReplay();
+        renderAnalysis();
+      }
+
+      function eventToCanvasPoint(ev, canvas) {
+        const rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
+        if (ev.touches && ev.touches[0]) {
+          clientX = ev.touches[0].clientX;
+          clientY = ev.touches[0].clientY;
+        } else {
+          clientX = ev.clientX;
+          clientY = ev.clientY;
+        }
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+
+      function drawSegment(ctx, proj, a, b, color, width) {
+        if (!a || !b) return;
+        const p1 = proj(a), p2 = proj(b);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+
+      function midpoint(a, b) { return { lat: (a.lat + b.lat)/2, lon: (a.lon + b.lon)/2 }; }
+      function gateMid(a, b) { return (a && b) ? midpoint(a,b) : null; }
+
+      function toLocalMeters(origin, p) {
+        const R = 6371000;
+        const dLat = (p.lat - origin.lat) * Math.PI/180;
+        const dLon = (p.lon - origin.lon) * Math.PI/180;
+        const x = dLon * Math.cos((p.lat + origin.lat) * Math.PI/360) * R;
+        const y = dLat * R;
+        return { x, y };
+      }
+
+      function fromLocalMeters(origin, x, y) {
+        const R = 6371000;
+        const lat = origin.lat + (y / R) * 180/Math.PI;
+        const lon = origin.lon + (x / (R * Math.cos((lat + origin.lat) * Math.PI/360))) * 180/Math.PI;
+        return { lat, lon };
+      }
+
+      function distanceMeters(a, b) {
+        const p = toLocalMeters(a, b);
+        return Math.hypot(p.x, p.y);
+      }
+
+      function bearingDeg(a, b) {
+        const p = toLocalMeters(a, b);
+        return (Math.atan2(p.x, p.y) * 180 / Math.PI + 360) % 360;
+      }
+
+      function signedAngleDeg(a, b) {
+        let d = ((b - a + 540) % 360) - 180;
+        return d;
+      }
+
+      function rotate(x, y, rad) {
+        return { x: x * Math.cos(rad) - y * Math.sin(rad), y: x * Math.sin(rad) + y * Math.cos(rad) };
+      }
+
+      function formatEventTime(ms) {
+        const shifted = ms + state.config.timezoneOffsetMinutes * 60000;
+        const d = new Date(shifted);
+        const YYYY = d.getUTCFullYear();
+        const MM = String(d.getUTCMonth()+1).padStart(2, "0");
+        const DD = String(d.getUTCDate()).padStart(2, "0");
+        const hh = String(d.getUTCHours()).padStart(2, "0");
+        const mm = String(d.getUTCMinutes()).padStart(2, "0");
+        const ss = String(d.getUTCSeconds()).padStart(2, "0");
+        return `${YYYY}-${MM}-${DD} ${hh}:${mm}:${ss} (${state.config.timezoneRaw || "UTC"})`;
+      }
+
+      function fmtNum(v) { return (v == null || Number.isNaN(v)) ? "N/A" : Number(v).toFixed(Math.abs(v) >= 100 ? 0 : 1); }
+      function confidenceFor(ok) { return ok ? "Measured" : "Low confidence"; }
+      function capitalize(s) { return s[0].toUpperCase() + s.slice(1); }
+
+      return { init };
+    })();
+
+    window.addEventListener("load", App.init);
+  </script>
 </body>
 </html>
-
