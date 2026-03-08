@@ -243,6 +243,15 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
   .card-grid{grid-template-columns:1fr 1fr 1fr}
   .mc-val{font-size:20px}
 }
+@media(max-width:640px){
+  #tabbar{overflow-x:auto}
+  .tab{min-width:25%}
+  .card-grid,.card-grid.three{grid-template-columns:1fr}
+  .mcard{padding:12px 12px}
+  .mc-val.big{font-size:24px}
+  .mc-val.med{font-size:18px}
+  .mc-val.sm{font-size:15px}
+}
 </style>
 </head>
 <body>
@@ -274,6 +283,21 @@ textarea.cfg-input:focus{border-color:var(--cyan)}
     <div class="field">
       <label>RACE DAY NUMBER</label>
       <input id="setup-raceday" type="number" placeholder="1" min="1" max="20" value="1">
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>EVENT TIMEZONE OFFSET</label>
+      <input id="setup-tzoffset" type="text" placeholder="UTC-5" value="UTC+0" list="tz-presets" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <datalist id="tz-presets">
+        <option value="UTC-12"></option>
+        <option value="UTC-8"></option>
+        <option value="UTC-5"></option>
+        <option value="UTC+0"></option>
+        <option value="UTC+1"></option>
+        <option value="UTC+2"></option>
+        <option value="UTC+8"></option>
+        <option value="UTC+10"></option>
+        <option value="UTC+12"></option>
+      </datalist>
     </div>
   </div>
 
@@ -2221,4 +2245,3 @@ window.addEventListener('resize', ()=>{ if(el('panel-map').classList.contains('a
 </body>
 </html>
 
-<style>@media(max-width:640px){#tabbar{overflow-x:auto}.tab{min-width:25%}.card-grid,.card-grid.three{grid-template-columns:1fr}.mcard{padding:12px 12px}.mc-val.big{font-size:24px}.mc-val.med{font-size:18px}.mc-val.sm{font-size:15px}}</style>
