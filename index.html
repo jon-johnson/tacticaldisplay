@@ -175,15 +175,15 @@
 
         <div class="field">
           <label for="watchUrl">RaceSense Watch URL</label>
-          <input id="watchUrl" name="watchUrl" type="url" required spellcheck="false" autocapitalize="none" enterkeyhint="next" placeholder="https://vakaros-racesense.web.app/watch/{event}/{division}?race-day=3" />
+          <input id="watchUrl" name="watchUrl" required placeholder="https://vakaros-racesense.web.app/watch/{event}/{division}?race-day=3" />
           <div class="helper">Paste full watch link to auto-detect event, division, and race-day.</div>
         </div>
 
         <div class="grid-2">
           <div class="field"><label for="eventId">Event ID</label><input id="eventId" name="eventId" required /></div>
           <div class="field"><label for="division">Division / Class</label><input id="division" name="division" placeholder="M32" /></div>
-          <div class="field"><label for="raceDay">Race day</label><input id="raceDay" name="raceDay" type="number" inputmode="numeric" min="1" step="1" placeholder="3" /></div>
-          <div class="field"><label for="tzOffset">Event timezone offset (hours)</label><input id="tzOffset" name="tzOffset" type="number" inputmode="decimal" step="0.5" value="0" required /></div>
+          <div class="field"><label for="raceDay">Race day</label><input id="raceDay" name="raceDay" type="number" min="1" step="1" placeholder="3" /></div>
+          <div class="field"><label for="tzOffset">Event timezone offset (hours)</label><input id="tzOffset" name="tzOffset" type="number" step="0.5" value="0" required /></div>
         </div>
 
         <div class="grid-2">
@@ -286,8 +286,7 @@
         mode: "setup",
         loading: false,
         error: "",
-        detected: { rc: [], pin: [], ww: [], wl: [] },
-        lastCanvasTransform: null
+        detected: { rc: [], pin: [], ww: [], wl: [] }
       }
     };
 
@@ -312,15 +311,14 @@
     function parseRaceSenseUrl(url) {
       try {
         const u = new URL(url.trim());
-        const hostOk = /vakaros-racesense\.web\.app$/i.test(u.hostname);
         const parts = u.pathname.split("/").filter(Boolean);
         const watchIdx = parts.findIndex(p => p.toLowerCase() === "watch");
         const eventId = watchIdx >= 0 ? (parts[watchIdx + 1] || "") : "";
         const division = watchIdx >= 0 ? (parts[watchIdx + 2] || "") : "";
         const raceDay = u.searchParams.get("race-day") || u.searchParams.get("raceDay") || "";
-        return { eventId, division, raceDay, raw: url.trim(), hostOk, watchPathOk: watchIdx >= 0 };
+        return { eventId, division, raceDay, raw: url.trim() };
       } catch {
-        return { eventId: "", division: "", raceDay: "", raw: url.trim(), hostOk: false, watchPathOk: false };
+        return { eventId: "", division: "", raceDay: "", raw: url.trim() };
       }
     }
 
@@ -365,28 +363,18 @@
       return candidates;
     }
 
-    async function fetchJsonWithTimeout(url, timeoutMs = 12000) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const response = await fetch(url, {
-          headers: { Accept: "application/json" },
-          signal: controller.signal
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-      } finally {
-        clearTimeout(timer);
-      }
-    }
-
     async function fetchTelemetryWindow(config, afterMs, beforeMs) {
       const candidates = buildTelemetryRequest(config, afterMs, beforeMs);
       const errors = [];
 
       for (const candidate of candidates) {
         try {
-          const json = await fetchJsonWithTimeout(candidate.url);
+          const resp = await fetch(candidate.url, { headers: { Accept: "application/json" } });
+          if (!resp.ok) {
+            errors.push(`${candidate.name}: HTTP ${resp.status}`);
+            continue;
+          }
+          const json = await resp.json();
           const normalized = normalizeTelemetryRows(json, candidate.parser, config, afterMs, beforeMs);
           if (!normalized.length) {
             errors.push(`${candidate.name}: no usable rows`);
@@ -403,8 +391,7 @@
 
     function normalizeTelemetryRows(raw, parserType, config, afterMs, beforeMs) {
       let rows = [];
-      if (parserType === "firestore") rows = Array.isArray(raw?.documents) ? raw.documents : [];
-      else if (Array.isArray(raw)) rows = raw;
+      if (Array.isArray(raw)) rows = raw;
       else if (Array.isArray(raw?.rows)) rows = raw.rows;
       else if (Array.isArray(raw?.data)) rows = raw.data;
       else if (Array.isArray(raw?.documents)) rows = raw.documents;
@@ -692,12 +679,11 @@
 
       try {
         const fd = new FormData(el.setupForm);
-        const parsedLink = parseRaceSenseUrl(String(fd.get("watchUrl") || ""));
         const cfg = {
           watchUrl: String(fd.get("watchUrl") || "").trim(),
-          eventId: String(fd.get("eventId") || "").trim() || parsedLink.eventId,
-          division: String(fd.get("division") || "").trim() || parsedLink.division,
-          raceDay: String(fd.get("raceDay") || "").trim() || parsedLink.raceDay,
+          eventId: String(fd.get("eventId") || "").trim(),
+          division: String(fd.get("division") || "").trim(),
+          raceDay: String(fd.get("raceDay") || "").trim(),
           timezoneOffsetHours: Number(fd.get("tzOffset") || 0),
           rcSerials: parseSerialList(String(fd.get("rcSerials") || "")),
           pinSerials: parseSerialList(String(fd.get("pinSerials") || "")),
@@ -707,7 +693,6 @@
         };
         if (!cfg.eventId) throw new Error("Event ID is required.");
         if (!cfg.gunTimes.length) throw new Error("At least one gun time is required.");
-        if (!Number.isFinite(cfg.timezoneOffsetHours)) throw new Error("Timezone offset must be numeric.");
 
         appState.config = cfg;
         const firstRace = cfg.gunTimes[0];
@@ -718,10 +703,17 @@
         const beforeMs = appState.replay.cursorTimeMs + FETCH_WINDOW_AFTER_MS;
 
         const telemetry = await fetchTelemetryWindow(cfg, afterMs, beforeMs);
-        applyTelemetryResult(telemetry, afterMs, beforeMs, cfg);
+        appState.telemetry.rows = telemetry.rows;
+        appState.telemetry.sourceName = telemetry.sourceName;
+        appState.telemetry.fetchedRange = { afterMs, beforeMs };
+
+        appState.geometry = deriveGeometryFromTelemetry(telemetry.rows, cfg);
+        appState.analysis.cards = computeAnalysis(appState.geometry, cfg);
 
         populateRaceSelector();
+        updateDetectedPanel();
         renderReplay();
+        renderAnalysis();
 
         el.setupStatus.textContent = `Loaded ${telemetry.rows.length} telemetry rows via ${telemetry.sourceName}.`;
         setMode("replay");
@@ -737,16 +729,6 @@
       el.raceSelect.value = String(appState.replay.raceNumber || list[0]?.raceNumber || "");
     }
 
-    function applyTelemetryResult(telemetry, afterMs, beforeMs, config) {
-      appState.telemetry.rows = telemetry.rows;
-      appState.telemetry.sourceName = telemetry.sourceName;
-      appState.telemetry.fetchedRange = { afterMs, beforeMs };
-      appState.geometry = deriveGeometryFromTelemetry(telemetry.rows, config);
-      appState.analysis.cards = computeAnalysis(appState.geometry, config);
-      updateDetectedPanel();
-      renderAnalysis();
-    }
-
     async function refreshTelemetryForCursor() {
       const cfg = appState.config;
       const c = appState.replay.cursorTimeMs;
@@ -758,7 +740,13 @@
       el.replayStatus.textContent = "Fetching new telemetry window...";
       try {
         const telemetry = await fetchTelemetryWindow(cfg, afterMs, beforeMs);
-        applyTelemetryResult(telemetry, afterMs, beforeMs, cfg);
+        appState.telemetry.rows = telemetry.rows;
+        appState.telemetry.sourceName = telemetry.sourceName;
+        appState.telemetry.fetchedRange = { afterMs, beforeMs };
+        appState.geometry = deriveGeometryFromTelemetry(telemetry.rows, cfg);
+        appState.analysis.cards = computeAnalysis(appState.geometry, cfg);
+        updateDetectedPanel();
+        renderAnalysis();
         el.replayStatus.textContent = `Telemetry updated (${telemetry.rows.length} rows / ${telemetry.sourceName}).`;
       } catch (err) {
         el.replayStatus.textContent = err.message;
@@ -789,53 +777,6 @@
       `).join("");
     }
 
-    function buildCourseTransform(points, geometry, width, height) {
-      const anchor = points[0];
-      const toLocal = (p) => {
-        const rel = project(anchor, p);
-        return { x: rel.x, y: rel.y };
-      };
-
-      const courseAxis = Number.isFinite(geometry.courseAxisDeg) ? geometry.courseAxisDeg : 0;
-      const rotationRad = -toRad(90 - courseAxis);
-      const cosR = Math.cos(rotationRad);
-      const sinR = Math.sin(rotationRad);
-      const rotate = (xy) => ({
-        x: xy.x * cosR - xy.y * sinR,
-        y: xy.x * sinR + xy.y * cosR
-      });
-
-      const rotated = points.map(p => rotate(toLocal(p)));
-      const minX = Math.min(...rotated.map(p => p.x));
-      const maxX = Math.max(...rotated.map(p => p.x));
-      const minY = Math.min(...rotated.map(p => p.y));
-      const maxY = Math.max(...rotated.map(p => p.y));
-      const pad = Math.max(26, Math.min(42, width * 0.08));
-      const spanX = Math.max(1, maxX - minX);
-      const spanY = Math.max(1, maxY - minY);
-      const scale = Math.min((width - pad * 2) / spanX, (height - pad * 2) / spanY);
-
-      const toCanvas = (p) => {
-        const rot = rotate(toLocal(p));
-        return {
-          x: pad + (rot.x - minX) * scale,
-          y: height - (pad + (rot.y - minY) * scale)
-        };
-      };
-
-      const fromCanvas = (x, y) => {
-        const rx = minX + (x - pad) / scale;
-        const ry = minY + (height - y - pad) / scale;
-        const invX = rx * cosR + ry * sinR;
-        const invY = -rx * sinR + ry * cosR;
-        const lat = anchor.lat + toDeg(invY / EARTH);
-        const lon = anchor.lon + toDeg(invX / (EARTH * Math.cos(toRad(anchor.lat))));
-        return { lat, lon };
-      };
-
-      return { toCanvas, fromCanvas };
-    }
-
     function drawCourse() {
       const canvas = el.canvas;
       const ctx = canvas.getContext("2d");
@@ -846,8 +787,7 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const g = appState.geometry;
-      const markSet = new Set([...(appState.ui.detected.rc || []), ...(appState.ui.detected.pin || []), ...(appState.ui.detected.ww || []), ...(appState.ui.detected.wl || [])]);
-      const boats = appState.telemetry.rows.filter(r => r.timestampMs <= appState.replay.cursorTimeMs && r.serial && !markSet.has(r.serial));
+      const boats = appState.telemetry.rows.filter(r => r.timestampMs <= appState.replay.cursorTimeMs && r.serial && !new Set([...(appState.ui.detected.rc||[]), ...(appState.ui.detected.pin||[]), ...(appState.ui.detected.ww||[]), ...(appState.ui.detected.wl||[])]).has(r.serial));
       const pts = [g.rc, g.pin, ...g.ww, ...g.wl, g.reach, ...boats].filter(Boolean);
 
       ctx.clearRect(0, 0, rect.width, rect.height);
@@ -858,11 +798,31 @@
         return;
       }
 
-      const transform = buildCourseTransform(pts, g, rect.width, rect.height);
-      appState.ui.lastCanvasTransform = transform;
+      const meanLat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+      const proj = (p) => ({
+        x: (p.lon) * Math.cos(toRad(meanLat)),
+        y: p.lat
+      });
+
+      const projected = pts.map(proj);
+      const minX = Math.min(...projected.map(p => p.x));
+      const maxX = Math.max(...projected.map(p => p.x));
+      const minY = Math.min(...projected.map(p => p.y));
+      const maxY = Math.max(...projected.map(p => p.y));
+      const pad = 38;
+      const w = Math.max(1e-9, maxX - minX);
+      const h = Math.max(1e-9, maxY - minY);
+      const scale = Math.min((rect.width - pad * 2) / w, (rect.height - pad * 2) / h);
+      const map = (p) => {
+        const pr = proj(p);
+        return {
+          x: pad + (pr.x - minX) * scale,
+          y: rect.height - (pad + (pr.y - minY) * scale)
+        };
+      };
 
       const line = (a, b, color, width = 2, dash = []) => {
-        const pa = transform.toCanvas(a), pb = transform.toCanvas(b);
+        const pa = map(a), pb = map(b);
         ctx.save();
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
@@ -879,7 +839,7 @@
 
       const drawPoint = (p, label, color, r = 6) => {
         if (!p) return;
-        const m = transform.toCanvas(p);
+        const m = map(p);
         ctx.fillStyle = color;
         ctx.beginPath(); ctx.arc(m.x, m.y, r, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#eaf4ff";
@@ -904,7 +864,7 @@
         if (track.length < 2) return;
         ctx.beginPath();
         track.forEach((p, i) => {
-          const m = transform.toCanvas(p);
+          const m = map(p);
           if (i === 0) ctx.moveTo(m.x, m.y);
           else ctx.lineTo(m.x, m.y);
         });
@@ -913,7 +873,7 @@
 
       ctx.fillStyle = "#cfe2ff";
       ctx.font = "600 12px Inter";
-      ctx.fillText("Course rendered on vertical axis (WW top / WL bottom)", 14, rect.height - 12);
+      ctx.fillText("WW top / WL bottom orientation", 14, rect.height - 12);
     }
 
     function handleWatchUrlInput() {
@@ -922,11 +882,6 @@
       if (parsed.eventId) document.getElementById("eventId").value = parsed.eventId;
       if (parsed.division) document.getElementById("division").value = parsed.division;
       if (parsed.raceDay) document.getElementById("raceDay").value = parsed.raceDay;
-      if (input.value.trim() && (!parsed.hostOk || !parsed.watchPathOk)) {
-        el.setupError.textContent = "URL parsed, but host/path does not look like a standard RaceSense watch link.";
-      } else if (el.setupError.textContent.includes("does not look like")) {
-        el.setupError.textContent = "";
-      }
     }
 
     function setCursor(ms) {
@@ -938,8 +893,6 @@
     function hookEvents() {
       renderNav();
       document.getElementById("watchUrl").addEventListener("input", handleWatchUrlInput);
-      document.getElementById("watchUrl").addEventListener("change", handleWatchUrlInput);
-      document.getElementById("watchUrl").addEventListener("paste", () => setTimeout(handleWatchUrlInput, 0));
       el.setupForm.addEventListener("submit", handleSetupSubmit);
 
       el.raceSelect.addEventListener("change", () => {
@@ -973,15 +926,30 @@
       });
 
       const moveReach = (evt) => {
-        const transform = appState.ui.lastCanvasTransform;
-        if (!transform) return;
+        const g = appState.geometry;
+        const pts = [g.rc, g.pin, ...g.ww, ...g.wl, g.reach].filter(Boolean);
+        if (!pts.length) return;
 
         const rect = el.canvas.getBoundingClientRect();
         const x = (evt.touches?.[0]?.clientX ?? evt.clientX) - rect.left;
         const y = (evt.touches?.[0]?.clientY ?? evt.clientY) - rect.top;
 
-        const moved = transform.fromCanvas(x, y);
-        appState.geometry.reach = { lat: moved.lat, lon: moved.lon, confidence: "Manual" };
+        const meanLat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+        const proj = (p) => ({ x: p.lon * Math.cos(toRad(meanLat)), y: p.lat });
+        const projected = pts.map(proj);
+        const minX = Math.min(...projected.map(p => p.x));
+        const maxX = Math.max(...projected.map(p => p.x));
+        const minY = Math.min(...projected.map(p => p.y));
+        const maxY = Math.max(...projected.map(p => p.y));
+        const pad = 38;
+        const scale = Math.min((rect.width - pad * 2) / Math.max(1e-9, maxX - minX), (rect.height - pad * 2) / Math.max(1e-9, maxY - minY));
+
+        const projX = minX + (x - pad) / scale;
+        const projY = minY + (rect.height - y - pad) / scale;
+        const lon = projX / Math.cos(toRad(meanLat));
+        const lat = projY;
+
+        appState.geometry.reach = { lat, lon, confidence: "Manual" };
         appState.analysis.cards = computeAnalysis(appState.geometry, appState.config);
         renderReplay();
         renderAnalysis();
