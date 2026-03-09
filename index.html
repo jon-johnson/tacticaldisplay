@@ -269,7 +269,6 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
       <label>GUN TIMES (one per line: race,unix_ms)</label>
       <textarea id="setup-guns" class="cfg-input" rows="4" placeholder="1,1770397440000&#10;2,1770399240000" style="resize:vertical;min-height:86px"></textarea>
     </div>
-      <button class="cfg-save" type="button" style="margin-top:8px" onclick="loadGunsFromFirestore()">LOAD GUN TIMES FROM FIRESTORE</button>
   </div>
 
   <div class="setup-card">
@@ -295,7 +294,7 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 
   <button class="btn-primary" id="setup-btn">START TACTICAL VIEW</button>
   <div class="setup-note" id="setup-error" style="color:var(--red);display:none"></div>
-  <div class="setup-note">Live mode is primary and will try current telemetry first, then recent historical windows if needed. Replay mode uses gun times (Firestore load is optional).</div>
+  <div class="setup-note">Live mode is primary and will try current telemetry first, then recent historical windows if needed. Replay mode uses manually entered gun times.</div>
 </div>
 
 <!-- MAIN APP -->
@@ -666,14 +665,9 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
           <div class="cfg-label">GUN TIMES (unix ms, one per line, format: raceNum,timestamp)</div>
           <textarea class="cfg-input" id="cfg-guns" rows="4" placeholder="1,1770397440000&#10;2,1770399240000" style="resize:vertical;line-height:1.5"></textarea>
         </div>
-        <div class="cfg-row">
-          <div class="cfg-field">
-            <div class="cfg-label">EVENT TIMEZONE</div>
-            <input class="cfg-input" id="cfg-timezone" placeholder="America/New_York">
-          </div>
-          <div class="cfg-field" style="align-self:flex-end">
-            <button class="cfg-save" type="button" onclick="loadGunsFromFirestore()">LOAD GUN TIMES</button>
-          </div>
+        <div class="cfg-field">
+          <div class="cfg-label">EVENT TIMEZONE</div>
+          <input class="cfg-input" id="cfg-timezone" placeholder="America/New_York">
         </div>
       </div>
 
@@ -2172,75 +2166,6 @@ function parseEventContext(input){
   }
 }
 
-
-const _regattaCache = {};
-function eventDayBounds(){
-  const rd=Math.max(1, parseInt(STATE.raceDay)||1);
-  const tz=STATE.eventTz||DEFAULT_EVENT_TIMEZONE;
-  const now=new Date();
-  const y=now.getUTCFullYear();
-  const m=now.getUTCMonth();
-  const d=now.getUTCDate()+rd-1;
-  const dayStart=Date.UTC(y,m,d,0,0,0);
-  return {dayStart, dayEnd:dayStart+24*3600*1000, tz};
-}
-async function fetchFirestoreGuns(regattaId){
-  if(!_regattaCache[regattaId]){
-    const url=`https://firestore.googleapis.com/v1/projects/vakaros-racesense/databases/(default)/documents/regattas/${regattaId}?key=AIzaSyDoQfjoAtx9g3sS7MzKUM0gGwW8tREKxwk`;
-    const res=await fetch(url);
-    if(!res.ok){
-      const body=await res.text().catch(()=> '');
-      throw new Error(`Firestore REST ${res.status}${body?` - ${body.slice(0,120)}`:''}`);
-    }
-    _regattaCache[regattaId]=await res.json();
-  }
-  const parseValue=(v)=>{
-    if(v?.stringValue!==undefined) return v.stringValue;
-    if(v?.integerValue!==undefined) return parseInt(v.integerValue);
-    if(v?.doubleValue!==undefined) return parseFloat(v.doubleValue);
-    if(v?.booleanValue!==undefined) return v.booleanValue;
-    if(v?.timestampValue!==undefined) return new Date(v.timestampValue).getTime();
-    if(v?.arrayValue) return (v.arrayValue.values||[]).map(parseValue);
-    if(v?.mapValue){const o={}; for(const [k,val] of Object.entries(v.mapValue.fields||{})) o[k]=parseValue(val); return o;}
-    return null;
-  };
-  const fields=_regattaCache[regattaId]?.fields||{};
-  const divisions=parseValue(fields.divisions)||[];
-  const div=divisions.find(d=>d.name==='M32'||d.boatClass==='M32')||divisions[0];
-  if(!div?.races) return [];
-  const guns=[];
-  for(const race of div.races){
-    if(!race.starts?.length) continue;
-    const finished=[...race.starts].reverse().find(s=>s.stopReason==='finished')||race.starts[race.starts.length-1];
-    const ts=finished?.startTime;
-    if(ts) guns.push([race.raceNumber, ts]);
-  }
-  return guns.sort((a,b)=>a[0]-b[0]);
-}
-async function loadGunsFromFirestore(){
-  const eventId=STATE.eventId||parseEventContext(el('setup-url')?.value||'').eventId||el('cfg-eventid')?.value?.trim();
-  if(!eventId){ showSetupWarning('Enter event ID/URL first.'); return; }
-  try{
-    setStatus('polling','LOADING GUNS…');
-    const guns=await fetchFirestoreGuns(eventId);
-    if(!guns.length){ showSetupWarning('Could not auto-load gun times for this event. Enter replay gun times manually.'); setStatus('idle','NO GUNS'); return; }
-    STATE.guns=guns;
-    syncSelectedGun();
-    syncReplayCursor(true);
-    const txt=guns.map(g=>g.join(',')).join('\n');
-    if(el('setup-guns')) el('setup-guns').value=txt;
-    if(el('cfg-guns')) el('cfg-guns').value=txt;
-    fillReplayRaceOptions();
-    updateReplayControls();
-    saveStateToStorage();
-    clearSetupWarning();
-    setStatus('ok','GUNS READY');
-  }catch(e){
-    console.error(e);
-    showSetupWarning('Could not auto-load gun times for this event. Enter replay gun times manually.');
-    setStatus('warn','GUNS MANUAL');
-  }
-}
 
 function startApp(){
   clearSetupWarning();
