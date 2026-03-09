@@ -295,7 +295,7 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 
   <button class="btn-primary" id="setup-btn">START TACTICAL VIEW</button>
   <div class="setup-note" id="setup-error" style="color:var(--red);display:none"></div>
-  <div class="setup-note">Live mode polls the current window. Replay mode uses your gun times and lets you load old races.</div>
+  <div class="setup-note">Live mode is primary and will try current telemetry first, then recent historical windows if needed. Replay mode uses gun times (Firestore load is optional).</div>
 </div>
 
 <!-- MAIN APP -->
@@ -919,6 +919,20 @@ async function fetchAllPages(eventId, after, before, maxPages=20){
   return allRows;
 }
 
+async function fetchLiveRowsWithFallback(eventId, preferredAfter, preferredBefore){
+  let rows=await fetchAllPages(eventId, preferredAfter, preferredBefore);
+  if(rows.length) return {rows, window:[preferredAfter,preferredBefore], fallback:false};
+  const now=Date.now();
+  const lookbacks=[6,24,72,168,336].map(h=>h*3600*1000);
+  for(const span of lookbacks){
+    const after=now-span;
+    const before=now+10000;
+    rows=await fetchAllPages(eventId, after, before);
+    if(rows.length) return {rows, window:[after,before], fallback:true};
+  }
+  return {rows:[], window:[preferredAfter,preferredBefore], fallback:true};
+}
+
 // ══════════════════════════════════════════════════════════════════
 //  WIND INFERENCE
 // ══════════════════════════════════════════════════════════════════
@@ -1055,7 +1069,16 @@ async function poll(){
 
   try{
     const win=getPollWindow();
-    const rows=await fetchAllPages(STATE.eventId, win.after, win.before);
+    let rows=[];
+    let usedFallback=false;
+    if(STATE.mode==='live'){
+      const out=await fetchLiveRowsWithFallback(STATE.eventId, win.after, win.before);
+      rows=out.rows;
+      usedFallback=out.fallback;
+    }else{
+      rows=await fetchAllPages(STATE.eventId, win.after, win.before);
+    }
+    if(!rows.length) throw new Error(STATE.mode==='live' ? 'No telemetry found for this event yet' : 'No telemetry in replay window');
     showLoadingBar(70);
 
     // Extract marks
@@ -1088,7 +1111,8 @@ async function poll(){
     }
 
     STATE.lastPoll=Date.now();
-    setStatus('ok', win.status);
+    if(usedFallback) setStatus('polling','LIVE (HIST WINDOW)');
+    else setStatus('ok', win.status);
     updateUI();
     showLoadingBar(100);
     setTimeout(()=>showLoadingBar(0),400);
