@@ -3,8 +3,8 @@
 A lightweight browser-based **tactical live and replay tool for
 sailing races** using **Vakaros RaceSense telemetry**.
 
-This tool allows sailors and coaches to replay race sessions, visualize
-course geometry, and extract key tactical metrics such as **start line
+This tool's purpose is to  sailors and coaches to get live data from a race sense viewer and utilise this for making decisions. It should also have functionality to replay race sessions, visualize course geometry.  
+The key tactical metrics are **start line
 bias, gate bias, and optimal start positions**.
 
 The entire application runs from a **single HTML file** with **no
@@ -31,16 +31,19 @@ sailors and coaches to interpret the results themselves.
 
 # Key Features
 
+## Live Mode
+
+Pull live data from Vakaros Race Sense link and turn it into a dashboard with key tactical metrics, including:
+
+- course axis between windward and leeward gates
+- gate axises, and biases relative to wind or course axis in the gates
+- Start line geometry (distance from pin, distance from RC, difference)
+- Optimal starting position based on wind direction/course axis
+- Other metrics to be defined later
+
 ## Replay Mode
 
-Replay historical RaceSense events using a timeline scrubber.
-
-This allows analysis of:
-
--   pre‑start positioning
--   mark drift
--   wind shifts
--   course adjustments during the day
+Replay historical RaceSense events using a timeline scrubber, showing the same essential metrics.
 
 The replay slider moves through time while loading telemetry around the
 selected moment.
@@ -102,6 +105,14 @@ Useful for understanding likely reach angles after the start.
 
 ------------------------------------------------------------------------
 
+### Start Line Optimal Position
+
+Combines true wind angle and the polars from the World Championships race report document to estimate an optimal starting position.
+
+Useful for identifying where to start on the line
+
+------------------------------------------------------------------------
+
 ### WW Gate Bias
 
 Bias of the **windward gate** relative to the wind axis.
@@ -117,6 +128,12 @@ Displays:
 -   start line axis
 
 These provide context for the tactical calculations.
+
+------------------------------------------------------------------------
+
+### Wind Direction and Strength
+
+User can manually enter a wind direction and strength to use as a baseline for the metrics to load.
 
 ------------------------------------------------------------------------
 
@@ -172,11 +189,11 @@ Each metric appears as a **large readable card**.
 
 When the tool loads, you must configure the event.
 
-## RaceSense Event ID
+## RaceSense Event URL
 
 Example:
 
-    IyYGkmRTu1vTOXMXlA6Y
+    (https://vakaros-racesense.web.app/watch/zRN8bknazFs5ecld7QIo/M32?race-day=3)
 
 ------------------------------------------------------------------------
 
@@ -203,23 +220,21 @@ Required:
     WW gate serials
     WL gate serials
 
-Multiple serials may be entered separated by commas.
+Multiple serials may be entered separated by commas. Default for these should be taken from the serial numbers in the World Championships race report
 
 ------------------------------------------------------------------------
 
 ## Gun Times
 
-Race start times must be entered in **Unix milliseconds**.
+Race start times must be entered in **Dateandtime**.
 
 Example:
 
-    1,1763571840000
-    2,1763573640000
-    3,1763575440000
+    1,21/11/25, 12:04:00
 
 Format:
 
-    raceNumber,unixTimestamp
+    raceNumber,dateandtime
 
 ------------------------------------------------------------------------
 
@@ -242,6 +257,8 @@ RaceSense telemetry includes mark serial identifiers.
 
 When data is loaded the tool displays **detected serial numbers** so
 they can easily be copied into the configuration fields.
+
+Detect the mark serial numbers from the World Championships race report as default
 
 ------------------------------------------------------------------------
 
