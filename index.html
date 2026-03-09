@@ -2069,7 +2069,7 @@ function saveConfig(){
   const cfgParsed=parseEventContext(cfgRaw);
   STATE.eventId=cfgParsed.eventId || cfgRaw;
   STATE.raceDay=cfgParsed.raceDay || parseInt(el('cfg-raceday').value)||1;
-  STATE.division=el('cfg-division').value.trim()||'M32';
+  STATE.division=(cfgParsed.division||el('cfg-division').value||'M32').trim()||'M32';
   STATE.mode=el('cfg-mode').value||'live';
   STATE.pollInterval=parseInt(el('cfg-poll').value)||30;
   STATE.windowMin=parseInt(el('cfg-window').value)||5;
@@ -2134,23 +2134,43 @@ function resetAll(){
 // ══════════════════════════════════════════════════════════════════
 //  SETUP FLOW
 // ══════════════════════════════════════════════════════════════════
-function parseEventContext(input){
-  const txt=(input||'').trim();
-  if(!txt) return {eventId:null,raceDay:null};
-  if(/^[a-zA-Z0-9_\-]{10,40}$/.test(txt)) return {eventId:txt,raceDay:null};
-  try{
-    const u=new URL(txt.includes('://')?txt:`https://${txt}`);
-    const m=u.pathname.match(/\/watch\/([^\/\?]+)/);
-    const eventId=m?m[1]:null;
-    const raceDay=parseInt(u.searchParams.get('race-day'))||null;
-    return {eventId,raceDay};
-  }catch(e){
-    const m=txt.match(/\/watch\/([^\/\?]+)/);
-    if(m) return {eventId:m[1],raceDay:null};
-    return {eventId:null,raceDay:null};
+function showSetupWarning(msg){
+  const err=el('setup-error');
+  const setupVisible=!!el('setup-overlay') && !el('setup-overlay').classList.contains('hidden');
+  if(err && setupVisible){
+    err.textContent=msg;
+    err.style.display='block';
+    return;
+  }
+  const statusTxt=el('status-text');
+  if(statusTxt) statusTxt.textContent=msg;
+}
+
+function clearSetupWarning(){
+  const err=el('setup-error');
+  if(err){
+    err.textContent='';
+    err.style.display='none';
   }
 }
 
+function parseEventContext(input){
+  const txt=(input||'').trim();
+  if(!txt) return {eventId:null,raceDay:null,division:null};
+  if(/^[a-zA-Z0-9_\-]{10,40}$/.test(txt)) return {eventId:txt,raceDay:null,division:null};
+  try{
+    const u=new URL(txt.includes('://')?txt:`https://${txt}`);
+    const m=u.pathname.match(/\/watch\/([^\/\?]+)(?:\/([^\/\?]+))?/);
+    const eventId=m?m[1]:null;
+    const division=m&&m[2]?decodeURIComponent(m[2]):null;
+    const raceDay=parseInt(u.searchParams.get('race-day'))||null;
+    return {eventId,raceDay,division};
+  }catch(e){
+    const m=txt.match(/\/watch\/([^\/\?]+)(?:\/([^\/\?]+))?/);
+    if(m) return {eventId:m[1],raceDay:null,division:m[2]||null};
+    return {eventId:null,raceDay:null,division:null};
+  }
+}
 
 
 const _regattaCache = {};
@@ -2199,11 +2219,11 @@ async function fetchFirestoreGuns(regattaId){
 }
 async function loadGunsFromFirestore(){
   const eventId=STATE.eventId||parseEventContext(el('setup-url')?.value||'').eventId||el('cfg-eventid')?.value?.trim();
-  if(!eventId){ alert('Enter event ID/URL first.'); return; }
+  if(!eventId){ showSetupWarning('Enter event ID/URL first.'); return; }
   try{
     setStatus('polling','LOADING GUNS…');
     const guns=await fetchFirestoreGuns(eventId);
-    if(!guns.length){ alert('No gun times found for this event/division.'); setStatus('idle','NO GUNS'); return; }
+    if(!guns.length){ showSetupWarning('Could not auto-load gun times for this event. Enter replay gun times manually.'); setStatus('idle','NO GUNS'); return; }
     STATE.guns=guns;
     syncSelectedGun();
     syncReplayCursor(true);
@@ -2213,28 +2233,27 @@ async function loadGunsFromFirestore(){
     fillReplayRaceOptions();
     updateReplayControls();
     saveStateToStorage();
+    clearSetupWarning();
     setStatus('ok','GUNS READY');
   }catch(e){
     console.error(e);
-    const msg=`Failed loading guns from Firestore (${e.message}). You can continue by pasting gun times manually.`;
-    alert(msg);
-    const err=el('setup-error');
-    if(err){ err.textContent=msg; err.style.display='block'; }
+    showSetupWarning('Could not auto-load gun times for this event. Enter replay gun times manually.');
     setStatus('warn','GUNS MANUAL');
   }
 }
 
 function startApp(){
+  clearSetupWarning();
   const rawUrl=el('setup-url').value.trim();
   const parsed=parseEventContext(rawUrl);
   const eventId=parsed.eventId || (/^[a-zA-Z0-9_\-]{10,40}$/.test(rawUrl)?rawUrl:null);
   if(!eventId){
-    el('setup-error').textContent='Enter a valid RaceSense URL or Event ID';
-    el('setup-error').style.display='block';
+    showSetupWarning('Enter a valid RaceSense URL or Event ID');
     return;
   }
   STATE.eventId=eventId;
   STATE.raceDay=parsed.raceDay||parseInt(el('setup-raceday').value)||1;
+  STATE.division=(parsed.division||STATE.division||'M32').trim()||'M32';
   STATE.eventTz=(el('setup-timezone').value||DEFAULT_EVENT_TIMEZONE).trim()||DEFAULT_EVENT_TIMEZONE;
   STATE.mode=el('setup-mode').value||'live';
   const gunsRaw=(el('setup-guns')?.value||'').trim();
@@ -2252,7 +2271,7 @@ function startApp(){
 
   syncSelectedGun();
   syncReplayCursor(true);
-  el('hdr-sub').textContent=`EVENT: ${eventId.substring(0,14)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${STATE.eventTz}`;
+  el('hdr-sub').textContent=`EVENT: ${eventId.substring(0,14)}… · ${STATE.division} · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${STATE.eventTz}`;
   saveStateToStorage();
   launchApp();
 }
