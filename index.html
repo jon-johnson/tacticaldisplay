@@ -750,6 +750,7 @@ let STATE = {
   replayCursorTs: null,
   replayRangeMinTs: null,
   replayRangeMaxTs: null,
+  replayUseCursor: false,
   gateSNs: { ...WORLDS_DEFAULT_GATE_SNS },
   eventTz: DEFAULT_EVENT_TIMEZONE,
   // Live mark positions
@@ -1065,14 +1066,30 @@ async function poll(){
     const win=getPollWindow();
     let rows=[];
     let usedFallback=false;
+    let usedRange={after:win.after,before:win.before};
     if(STATE.mode==='live'){
       const out=await fetchLiveRowsWithFallback(STATE.eventId, win.after, win.before);
       rows=out.rows;
       usedFallback=out.fallback;
+      usedRange={after:out.window[0],before:out.window[1]};
     }else{
       rows=await fetchAllPages(STATE.eventId, win.after, win.before);
+      if(!rows.length){
+        const {gunTs,nextGunTs}=getReplayGunContext();
+        if(gunTs){
+          const tries=[
+            {after:gunTs-10*60*1000,before:gunTs+10*60*1000,label:'±10m'},
+            {after:gunTs-30*60*1000,before:gunTs+30*60*1000,label:'±30m'},
+          ];
+          if(nextGunTs) tries.push({after:gunTs,before:nextGunTs,label:'gun→next'});
+          for(const t of tries){
+            const r=await fetchAllPages(STATE.eventId,t.after,t.before);
+            if(r.length){ rows=r; usedRange={after:t.after,before:t.before}; break; }
+          }
+        }
+      }
     }
-    if(!rows.length) throw new Error(STATE.mode==='live' ? 'No telemetry found for this event yet' : 'No telemetry in replay window');
+    if(!rows.length) throw new Error(STATE.mode==='live' ? 'No telemetry found for this event yet' : 'No telemetry found for this replay race window.');
     showLoadingBar(70);
 
     // Extract marks
@@ -1105,8 +1122,13 @@ async function poll(){
     }
 
     STATE.lastPoll=Date.now();
-    if(usedFallback) setStatus('polling','LIVE (HIST WINDOW)');
-    else setStatus('ok', win.status);
+    const dbg=`${fmtCompactTs(usedRange.after)}→${fmtCompactTs(usedRange.before)} r${rows.length}`;
+    if(STATE.mode==='live'){
+      if(usedFallback) setStatus('polling',`LIVE(H) ${dbg}`);
+      else setStatus('ok',`LIVE ${dbg}`);
+    }else{
+      setStatus('ok',`REPLAY ${dbg}`);
+    }
     updateUI();
     showLoadingBar(100);
     setTimeout(()=>showLoadingBar(0),400);
@@ -1818,7 +1840,7 @@ function clampReplayCursor(ts){
 function syncReplayCursor(resetToGun=false){
   syncSelectedGun();
   computeReplayRange();
-  if(resetToGun && STATE.selectedGunTs) STATE.replayCursorTs=STATE.selectedGunTs;
+  if(resetToGun && STATE.selectedGunTs){ STATE.replayCursorTs=STATE.selectedGunTs; STATE.replayUseCursor=false; }
   if(STATE.replayCursorTs==null){
     STATE.replayCursorTs=STATE.selectedGunTs || STATE.replayRangeMinTs;
   }
@@ -1844,6 +1866,7 @@ function setReplayCursorFromSlider(){
   computeReplayRange();
   const frac=(parseFloat(slider.value)||0)/1000;
   STATE.replayCursorTs=Math.round(STATE.replayRangeMinTs + frac*(STATE.replayRangeMaxTs-STATE.replayRangeMinTs));
+  STATE.replayUseCursor=true;
   updateReplayControls();
   saveStateToStorage();
   if(STATE.mode==='replay') poll();
@@ -1851,6 +1874,7 @@ function setReplayCursorFromSlider(){
 function nudgeReplayCursor(ms){
   syncReplayCursor(false);
   STATE.replayCursorTs=clampReplayCursor((STATE.replayCursorTs||STATE.selectedGunTs||Date.now())+ms);
+  STATE.replayUseCursor=true;
   updateReplayControls();
   saveStateToStorage();
   if(STATE.mode==='replay') poll();
@@ -1858,6 +1882,26 @@ function nudgeReplayCursor(ms){
 
 function getSortedGuns(){
   return [...(STATE.guns||[])].sort((a,b)=>(a[0]-b[0]) || (a[1]-b[1]));
+}
+function getReplayGunContext(){
+  const guns=getSortedGuns();
+  if(!guns.length) return {gunTs:null,nextGunTs:null};
+  const idx=guns.findIndex(g=>Number(g[0])===Number(STATE.selectedRaceNum));
+  const useIdx=idx>=0?idx:guns.length-1;
+  return {gunTs:guns[useIdx]?.[1]||null, nextGunTs:guns[useIdx+1]?.[1]||null};
+}
+function getRaceWindowFromGun(gunTs,nextGunTs){
+  if(!gunTs) return null;
+  const after=gunTs-35000;
+  const hardEnd=gunTs+20*60*1000;
+  const before=nextGunTs?Math.min(hardEnd,nextGunTs-1000):hardEnd;
+  return {after,before};
+}
+function fmtCompactTs(ts){
+  const d=new Date(ts);
+  const opt={hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false};
+  if(STATE.eventTz) opt.timeZone=STATE.eventTz;
+  try{return d.toLocaleTimeString([],opt);}catch(e){return d.toTimeString().slice(0,8);} 
 }
 function syncSelectedGun(){
   const guns=getSortedGuns();
@@ -1898,6 +1942,7 @@ function setReplayRaceFromUI(){
   STATE.selectedRaceNum=val?parseInt(val):null;
   syncSelectedGun();
   syncReplayCursor(true);
+  STATE.replayUseCursor=false;
   updateReplayControls();
   saveStateToStorage();
   if(STATE.mode==='replay'){
@@ -1909,12 +1954,17 @@ function getPollWindow(){
   const windowMs=(STATE.windowMin||5)*60*1000;
   if(STATE.mode==='replay'){
     syncReplayCursor(false);
-    const cursor=STATE.replayCursorTs || STATE.selectedGunTs;
-    if(!cursor) throw new Error('Replay mode needs gun times');
+    const {gunTs,nextGunTs}=getReplayGunContext();
+    if(!gunTs) throw new Error('Replay mode needs gun times');
+    if(!STATE.replayUseCursor){
+      const raceWin=getRaceWindowFromGun(gunTs,nextGunTs);
+      return { after: raceWin.after, before: raceWin.before, status: 'REPLAY RACE' };
+    }
+    const cursor=STATE.replayCursorTs || gunTs;
     return {
       after: cursor-windowMs,
       before: cursor+windowMs,
-      status: 'REPLAY'
+      status: 'REPLAY CURSOR'
     };
   }
   const now=Date.now();
@@ -2090,7 +2140,7 @@ function saveConfig(){
   onModeChange();
   updateReplayControls();
 
-  el('hdr-sub').textContent=STATE.eventId?`EVENT: ${STATE.eventId.substring(0,12)}… · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${STATE.eventTz}`:'—';
+  el('hdr-sub').textContent=STATE.eventId?`EVENT: ${STATE.eventId.substring(0,12)}… · ${STATE.division} · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${STATE.eventTz}`:'—';
   saveStateToStorage();
   stopPolling();
   startPolling();
