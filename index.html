@@ -23,10 +23,7 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 /* ── APP SHELL ── */
 #app{display:flex;flex-direction:column;height:100%;max-height:100dvh}
 
-/* ── HEADER ── */
-#hdr{background:var(--bg2);border-bottom:1px solid var(--muted2);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;z-index:200}
-#hdr-logo{font-family:Orbitron,monospace;font-weight:900;font-size:14px;color:var(--cyan);letter-spacing:3px}
-#hdr-sub{font-size:9px;color:var(--muted);letter-spacing:1px;flex:1}
+/* ── STATUS ── */
 #hdr-status{display:flex;align-items:center;gap:6px;font-size:9px}
 .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
 .pulse-dot.warn{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
@@ -34,23 +31,12 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 .pulse-dot.idle{background:var(--muted);box-shadow:none;animation:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* ── SETUP PANEL ── */
-#setup-overlay{position:fixed;inset:0;background:rgba(5,10,16,.97);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;gap:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
-#setup-overlay.hidden{display:none}
-.setup-logo{font-family:Orbitron,monospace;font-weight:900;font-size:22px;color:var(--cyan);letter-spacing:4px;margin-bottom:4px}
-.setup-sub{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:28px}
-.setup-card{background:var(--bg2);border:1px solid var(--muted2);border-radius:8px;padding:18px 20px;width:100%;max-width:420px;margin-bottom:14px}
-.setup-card-title{font-family:Orbitron,monospace;font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:12px}
 .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
 .field:last-child{margin-bottom:0}
 .field label{font-size:9px;color:var(--muted);letter-spacing:1px}
 .field input,.field select{background:var(--bg3);border:1px solid var(--muted2);border-radius:4px;color:var(--text);padding:9px 11px;width:100%;font-size:12px;transition:border-color .15s}
 .field input:focus,.field select:focus{border-color:var(--cyan)}
 .field input::placeholder{color:var(--muted2)}
-.btn-primary{background:var(--cyan);touch-action:manipulation;color:#050a10;font-family:Orbitron,monospace;font-weight:700;font-size:11px;letter-spacing:2px;padding:12px 24px;border-radius:4px;cursor:pointer;width:100%;max-width:420px;transition:opacity .15s}
-.btn-primary:hover{opacity:.85}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.setup-note{font-size:9px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6;max-width:420px}
 
 /* ── TAB BAR ── */
 #tabbar{display:flex;background:var(--bg2);border-bottom:1px solid var(--muted2);flex-shrink:0}
@@ -143,9 +129,15 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 #map-canvas{display:block;background:var(--bg);border-radius:6px}
 .map-wrap{background:var(--bg2);border:1px solid var(--muted2);border-radius:6px;overflow:hidden;margin-bottom:10px;position:relative}
 .map-wrap canvas{width:100%;display:block;touch-action:none}
-.map-overlay{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.map-overlay{position:absolute;bottom:8px;left:8px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .map-badge{background:rgba(11,21,32,.8);border:1px solid var(--muted2);border-radius:3px;padding:3px 6px;font-size:7px;color:var(--muted);font-family:Orbitron,monospace;letter-spacing:1px}
 .map-tap-hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:8px;color:var(--muted);pointer-events:none}
+.map-zoom-controls{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px;z-index:8}
+.map-zoom-btn{width:34px;height:34px;border-radius:6px;background:rgba(11,21,32,.88);border:1px solid var(--muted2);color:var(--text);font-size:18px;line-height:1;cursor:pointer}
+.north-compass{position:absolute;top:8px;right:8px;z-index:8;width:42px;height:42px;border-radius:50%;background:rgba(11,21,32,.86);border:1px solid var(--muted2);display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;color:var(--cyan);font-size:12px;letter-spacing:1px}
+.center-wind{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:7;text-align:center}
+.center-wind svg{width:60px;height:60px;display:block;margin:auto}
+.center-wind .bearing{font-family:Orbitron,monospace;font-size:10px;color:var(--cyan);margin-top:2px;background:rgba(11,21,32,.74);padding:2px 6px;border-radius:4px;border:1px solid var(--muted2)}
 
 /* ── HISTORY TABLE ── */
 .hist-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:10px}
@@ -229,10 +221,13 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 }
 
 /* interactive mark classification + fitted map */
-.map-wrap{height:min(58vh, calc(100dvh - 210px));min-height:300px;max-height:720px}
-@media (max-width:700px){.map-wrap{height:min(52dvh, 480px);min-height:280px}}
+.map-wrap{height:calc(100dvh - 150px);min-height:300px;max-height:900px}
+@media (max-width:700px){.map-wrap{height:calc(100dvh - 132px);min-height:280px}}
 #panel-map{display:flex;flex-direction:column}
 #panel-map .map-wrap{flex:1}
+.data-priority{max-width:840px;margin:0 auto 12px}
+.data-priority .mcard{padding:16px 16px;text-align:center}
+.data-priority .mc-val{font-size:24px}
 .detected-marks-panel{position:absolute;left:8px;top:8px;max-width:min(44vw,220px);max-height:40%;overflow:auto;background:rgba(5,10,16,.78);backdrop-filter:blur(8px);border:1px solid var(--muted2);border-radius:8px;padding:8px 9px;z-index:6}
 .detected-marks-title{font:700 8px Orbitron,monospace;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px}
 .detected-mark-row{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:10px;padding:3px 0;border-top:1px solid rgba(37,56,80,.45)}
@@ -251,93 +246,18 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 </head>
 <body>
 
-<!-- SETUP OVERLAY -->
-<div id="setup-overlay">
-  <div class="setup-logo">M32 TACTICAL</div>
-  <div class="setup-sub">LIVE + REPLAY COURSE GEOMETRY</div>
-
-  <div class="setup-card">
-    <div class="setup-card-title">MODE</div>
-    <div class="field" style="margin-bottom:0">
-      <label>APP MODE</label>
-      <select id="setup-mode" class="cfg-input">
-        <option value="live">Live</option>
-        <option value="replay">Replay</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="setup-card">
-    <div class="setup-card-title">VAKAROS RACE SENSE EVENT</div>
-    <div class="field">
-      <label>RACESENSE URL OR EVENT ID</label>
-      <input id="setup-url" type="text" placeholder="https://racesense.app/watch/EVENT_ID/M32 or just EVENT_ID" autocorrect="off" autocapitalize="off" spellcheck="false">
-    </div>
-    <div class="field">
-      <label>RACE DAY NUMBER</label>
-      <input id="setup-raceday" type="number" placeholder="1" min="1" max="20" value="1">
-    </div>
-    <div class="field">
-      <label>EVENT TIMEZONE</label>
-      <input id="setup-timezone" type="text" value="America/New_York" placeholder="America/New_York" autocorrect="off" autocapitalize="off">
-    </div>
-  </div>
-
-  <div class="setup-card">
-    <div class="setup-card-title">REPLAY START TIMES</div>
-    <div class="field">
-      <label>GUN TIMES (one per line: race,unix_ms)</label>
-      <textarea id="setup-guns" class="cfg-input" rows="4" placeholder="1,1770397440000&#10;2,1770399240000" style="resize:vertical;min-height:86px"></textarea>
-    </div>
-  </div>
-
-  <div class="setup-card">
-    <div class="setup-card-title">MARK SERIAL NUMBERS</div>
-    <div style="font-size:8px;color:var(--muted);margin-bottom:10px;line-height:1.6">Enter buoy serial numbers for this venue. Find by inspecting raw telemetry (role='mark'). Separate multiple with commas.</div>
-    <div class="field">
-      <label>WW GATE SNs (windward pair)</label>
-      <input id="setup-ww" type="text" placeholder="13498, 15255" autocorrect="off">
-    </div>
-    <div class="field">
-      <label>WL GATE SNs (leeward pair)</label>
-      <input id="setup-lw" type="text" placeholder="15025, 15025" autocorrect="off">
-    </div>
-    <div class="field">
-      <label>RC BOAT SNs</label>
-      <input id="setup-rc" type="text" placeholder="14292" autocorrect="off">
-    </div>
-    <div class="field" style="margin-bottom:0">
-      <label>PIN BUOY SN</label>
-      <input id="setup-pin" type="text" placeholder="14293" autocorrect="off">
-    </div>
-  </div>
-
-  <button class="btn-primary" id="setup-btn">START TACTICAL VIEW</button>
-  <div class="setup-note" id="setup-error" style="color:var(--red);display:none"></div>
-  <div class="setup-note">Live mode is primary and will try current telemetry first, then recent historical windows if needed. Replay mode uses manually entered gun times.</div>
-</div>
-
 <!-- MAIN APP -->
-<div id="app" style="display:none">
+<div id="app">
   <!-- Loading bar -->
   <div id="loading-bar"></div>
 
-  <!-- Header -->
-  <div id="hdr">
-    <div>
-      <div id="hdr-logo">M32 TACTICAL</div>
-      <div id="hdr-sub">—</div>
-    </div>
-    <div id="hdr-status">
-      <div id="status-dot" class="pulse-dot idle"></div>
-      <span id="status-text" style="font-size:8px;color:var(--muted)">IDLE</span>
-    </div>
-  </div>
-
   <!-- Update banner -->
-  <div id="update-banner" class="hidden">
+  <div id="update-banner">
     <span id="last-update-text">Last update: —</span>
-    <span id="poll-countdown" style="color:var(--cyan)"></span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span id="poll-countdown" style="color:var(--cyan)"></span>
+      <span id="hdr-status"><span id="status-dot" class="pulse-dot idle"></span><span id="status-text" style="font-size:8px;color:var(--muted)">IDLE</span></span>
+    </div>
   </div>
 
   <div id="replay-toolbar">
@@ -357,7 +277,7 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
 
   <!-- Tab bar -->
   <div id="tabbar">
-    <div class="tab active" data-panel="data" onclick="switchTab('data')">
+    <div class="tab" data-panel="data" onclick="switchTab('data')">
       <span class="tab-icon">⎋</span>DATA
     </div>
     <div class="tab" data-panel="map" onclick="switchTab('map')">
@@ -366,10 +286,7 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
     <div class="tab" data-panel="wind" onclick="switchTab('wind')">
       <span class="tab-icon">⇡</span>WIND
     </div>
-    <div class="tab" data-panel="history" onclick="switchTab('history')">
-      <span class="tab-icon">◫</span>HISTORY
-    </div>
-    <div class="tab" data-panel="settings" onclick="switchTab('settings')">
+    <div class="tab active" data-panel="settings" onclick="switchTab('settings')">
       <span class="tab-icon">⚙</span>CONFIG
     </div>
   </div>
@@ -378,146 +295,35 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
   <div id="content">
 
     <!-- DATA PANEL -->
-    <div class="panel active" id="panel-data">
-
+    <div class="panel" id="panel-data">
       <!-- Reach mark -->
       <div class="rm-section" style="margin-bottom:10px">
-        <div class="sh" style="margin-bottom:8px">REACH MARK <span class="sh-badge" id="rm-source-badge">NOT SET</span></div>
-        <div class="rm-btn-row">
-          <div class="rm-btn active" id="rm-gps-btn" onclick="setRMMode('gps')">📍 GPS PING</div>
-          <div class="rm-btn" id="rm-manual-btn" onclick="setRMMode('manual')">✎ MANUAL ENTRY</div>
-        </div>
-        <div id="rm-gps-section">
-          <button class="rm-set-btn" onclick="gpsSnapRM()" id="gps-snap-btn">TAP AT REACH MARK → SET POSITION</button>
-        </div>
-        <div id="rm-manual-section" style="display:none">
-          <div class="rm-coords">
-            <input class="rm-coord-input" id="rm-lat" type="number" placeholder="Lat e.g. 25.7617" step="0.00001" autocorrect="off">
-            <input class="rm-coord-input" id="rm-lon" type="number" placeholder="Lon e.g. -80.1918" step="0.00001" autocorrect="off">
-          </div>
-          <div class="rm-set-btn" onclick="setManualRM()">SET REACH MARK</div>
-        </div>
-        <div class="rm-status">
-          <div class="rm-dot" id="rm-dot"></div>
-          <span id="rm-status-text">Not set — tap GPS button at the mark</span>
-        </div>
+        <button class="rm-set-btn" onclick="gpsSnapRM()" id="gps-snap-btn">📍 REACH MARK GPS PING</button>
       </div>
 
       <!-- Drift alert -->
       <div class="drift-alert hidden" id="drift-alert">
         ⚠ <span id="drift-text">Mark drift detected</span>
       </div>
-
-      <!-- Course geometry -->
-      <div class="sh">COURSE AXIS</div>
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard highlight">
-          <div class="mc-accent"></div>
-          <div class="mc-lbl">COURSE AXIS</div>
-          <div class="mc-val" id="val-axis">—</div>
-          <div class="mc-sub" id="val-axis-sub">LW → WW bearing</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-accent green"></div>
-          <div class="mc-lbl">WW LEG</div>
-          <div class="mc-val med" id="val-wwleg">—</div>
-          <div class="mc-sub" id="val-wwleg-sub">gate midpoint distance</div>
-        </div>
-      </div>
-
-      <!-- Start line -->
-      <div class="sh">START LINE</div>
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-accent yellow"></div>
-          <div class="mc-lbl">START LINE AXIS</div>
-          <div class="mc-val med" id="val-sl-axis">—</div>
-          <div class="mc-sub" id="val-sl-length">length —</div>
-        </div>
-        <div class="mcard" id="card-sl-bias">
-          <div class="mc-accent" id="bias-accent"></div>
-          <div class="mc-lbl">LINE BIAS</div>
-          <div class="mc-val med" id="val-sl-bias">—</div>
-          <div class="mc-sub" id="val-sl-bias-sub">favoured end</div>
-        </div>
-      </div>
-
-      <!-- Optimal start -->
-      <div class="sh">OPTIMAL START <span class="sh-badge" id="opt-badge">NEEDS WIND + RM</span></div>
-      <div id="opt-line-wrap">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div class="mc-lbl">OPTIMAL POSITION</div>
-            <div style="font-family:Orbitron,monospace;font-size:16px;color:var(--green)" id="opt-pos">—</div>
+      <div class="data-priority">
+        <div class="card-grid one" style="margin-bottom:10px">
+          <div class="mcard highlight">
+            <div class="mc-lbl">1. OPTIMAL START POSITION</div>
+            <div class="mc-val" id="opt-pos">—</div>
           </div>
-          <div style="text-align:right">
-            <div class="mc-lbl">RC END PENALTY</div>
-            <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--cyan)" id="opt-rc-pen">—</div>
-            <div class="mc-lbl" style="margin-top:4px">PIN END PENALTY</div>
-            <div style="font-family:Orbitron,monospace;font-size:13px;color:var(--orange)" id="opt-pin-pen">—</div>
+          <div class="mcard">
+            <div class="mc-lbl">2. LINE BIAS IN M</div>
+            <div class="mc-val" id="val-sl-bias">—</div>
           </div>
-        </div>
-        <div class="opt-line-svg-row">
-          <span class="opt-label-rc"><span class="tag rc">RC</span></span>
-          <svg id="opt-svg" viewBox="0 0 300 20" preserveAspectRatio="none">
-            <line x1="0" y1="10" x2="300" y2="10" stroke="rgba(255,255,255,.12)" stroke-width="6"/>
-            <text id="opt-no-data" x="150" y="13" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(120,160,200,.5)">set reach mark + wind to compute</text>
-          </svg>
-          <span class="opt-label-pin"><span class="tag pin">PIN</span></span>
-        </div>
-      </div>
-
-      <!-- Gate biases -->
-      <div class="sh">GATE BIASES</div>
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-accent green"></div>
-          <div class="mc-lbl">WW GATE AXIS <span class="tag ww">WW</span></div>
-          <div class="mc-val med" id="val-ww-axis">—</div>
-          <div class="mc-sub" id="val-ww-bias">bias —</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-accent purple"></div>
-          <div class="mc-lbl">LW GATE AXIS <span class="tag lw">LW</span></div>
-          <div class="mc-val med" id="val-lw-axis">—</div>
-          <div class="mc-sub" id="val-lw-bias">bias —</div>
-        </div>
-      </div>
-
-      <!-- Reach mark geometry -->
-      <div class="sh">REACH MARK GEOMETRY</div>
-      <div class="card-grid three" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-accent"></div>
-          <div class="mc-lbl">RC → RM</div>
-          <div class="mc-val sm" id="val-rc-rm">—</div>
-          <div class="mc-sub">metres</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-accent orange"></div>
-          <div class="mc-lbl">PIN → RM</div>
-          <div class="mc-val sm" id="val-pin-rm">—</div>
-          <div class="mc-sub">metres</div>
-        </div>
-        <div class="mcard" id="card-rm-diff">
-          <div class="mc-accent" id="rm-diff-accent"></div>
-          <div class="mc-lbl">DIFFERENCE</div>
-          <div class="mc-val sm" id="val-rm-diff">—</div>
-          <div class="mc-sub" id="val-rm-diff-sub">RC vs PIN to RM</div>
-        </div>
-      </div>
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-accent orange"></div>
-          <div class="mc-lbl">REACH LEG</div>
-          <div class="mc-val sm" id="val-reach-leg">—</div>
-          <div class="mc-sub" id="val-reach-twa">mid-start to mark</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-accent"></div>
-          <div class="mc-lbl">RM BEARING</div>
-          <div class="mc-val sm" id="val-rm-brg">—</div>
-          <div class="mc-sub">from start midpoint</div>
+          <div class="mcard">
+            <div class="mc-lbl">3. RC/PIN TO REACH MARK DIFFERENCE (M)</div>
+            <div class="mc-val" id="val-rm-diff">—</div>
+          </div>
+          <div class="mcard">
+            <div class="mc-lbl">4. LW GATE AXIS AND BIAS</div>
+            <div class="mc-val" id="val-lw-axis">—</div>
+            <div class="mc-sub" id="val-lw-bias">bias —</div>
+          </div>
         </div>
       </div>
     </div>
@@ -525,13 +331,29 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
     <!-- MAP PANEL -->
     <div class="panel" id="panel-map">
       <div class="sh" style="margin-bottom:8px">COURSE MAP <span class="sh-badge">WW AT TOP · AXIS-UP</span></div>
+      <button class="rm-set-btn" onclick="gpsSnapRM()" id="gps-snap-btn-map" style="margin-bottom:8px">📍 REACH MARK GPS PING</button>
       <div class="drift-alert hidden" id="drift-alert-map">
         ⚠ <span id="drift-text-map"></span>
       </div>
       <div class="map-wrap" id="map-wrap" style="margin-bottom:10px">
         <canvas id="map-canvas" width="600" height="900"></canvas>
+        <div class="north-compass">N</div>
+        <div class="center-wind" id="center-wind-indicator">
+          <svg viewBox="0 0 60 60" aria-hidden="true">
+            <circle cx="30" cy="30" r="26" fill="rgba(11,21,32,.35)" stroke="rgba(96,128,160,.35)" />
+            <g id="center-wind-arrow" transform="translate(30,30) rotate(0)">
+              <line x1="0" y1="16" x2="0" y2="-16" stroke="var(--cyan)" stroke-width="2"/>
+              <polygon points="0,-18 -5,-8 5,-8" fill="var(--cyan)"/>
+            </g>
+          </svg>
+          <div class="bearing" id="center-wind-bearing">—°</div>
+        </div>
         <div class="map-overlay">
           <div class="map-badge" id="map-scale-badge">— m</div>
+        </div>
+        <div class="map-zoom-controls">
+          <button class="map-zoom-btn" onclick="adjustMapZoom(1.2)">+</button>
+          <button class="map-zoom-btn" onclick="adjustMapZoom(1/1.2)">−</button>
         </div>
         <div class="detected-marks-panel">
           <div class="detected-marks-title">DETECTED MARKS</div>
@@ -552,17 +374,6 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
         </div>
         <div class="mark-click-hint">TAP SERIALS TO CLASSIFY MARKS</div>
         <div class="map-tap-hint" id="map-tap-hint">TAP EMPTY MAP TO SET REACH MARK</div>
-      </div>
-      <!-- Quick stats under map -->
-      <div class="card-grid" style="margin-bottom:10px">
-        <div class="mcard">
-          <div class="mc-lbl">COURSE AXIS</div>
-          <div class="mc-val sm" id="map-axis">—</div>
-        </div>
-        <div class="mcard">
-          <div class="mc-lbl">LINE BIAS</div>
-          <div class="mc-val sm" id="map-bias">—</div>
-        </div>
       </div>
     </div>
 
@@ -650,23 +461,8 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
       </div>
     </div>
 
-    <!-- HISTORY PANEL -->
-    <div class="panel" id="panel-history">
-      <div class="sh">RACE HISTORY — THIS EVENT <span class="sh-badge" id="hist-count-badge">0 RACES</span></div>
-      <div style="font-size:9px;color:var(--muted);margin-bottom:10px;line-height:1.6">
-        Historical bias across races in the current event. In replay mode you can target any saved gun time.
-      </div>
-      <div id="hist-content">
-        <div class="empty-state">
-          <div class="empty-icon">◫</div>
-          <div class="empty-title">NO HISTORY YET</div>
-          <div class="empty-sub">Race history loads automatically when you start the tool. Requires gun times to be set in config.</div>
-        </div>
-      </div>
-    </div>
-
     <!-- SETTINGS PANEL -->
-    <div class="panel" id="panel-settings">
+    <div class="panel active" id="panel-settings">
       <div class="sh">EVENT CONFIGURATION</div>
       <div class="cfg-section">
         <div class="cfg-title">VAKAROS EVENT</div>
@@ -675,10 +471,6 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
           <input class="cfg-input" id="cfg-eventid" autocorrect="off" autocapitalize="off" spellcheck="false">
         </div>
         <div class="cfg-row">
-          <div class="cfg-field">
-            <div class="cfg-label">RACE DAY</div>
-            <input class="cfg-input" id="cfg-raceday" type="number" min="1">
-          </div>
           <div class="cfg-field">
             <div class="cfg-label">DIVISION</div>
             <input class="cfg-input" id="cfg-division" value="M32">
@@ -700,8 +492,29 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
           </div>
         </div>
         <div class="cfg-field">
-          <div class="cfg-label">GUN TIMES (unix ms, one per line, format: raceNum,timestamp)</div>
-          <textarea class="cfg-input" id="cfg-guns" rows="4" placeholder="1,1770397440000&#10;2,1770399240000" style="resize:vertical;line-height:1.5"></textarea>
+          <div class="cfg-label">GUN TIME (UTC)</div>
+          <div class="cfg-row">
+            <div class="cfg-field">
+              <div class="cfg-label">RACE #</div>
+              <input class="cfg-input" id="cfg-gun-race" type="number" min="1" value="1">
+            </div>
+            <div class="cfg-field">
+              <div class="cfg-label">DATE</div>
+              <input class="cfg-input" id="cfg-gun-date" type="date">
+            </div>
+          </div>
+          <div class="cfg-row">
+            <div class="cfg-field">
+              <div class="cfg-label">TIME</div>
+              <input class="cfg-input" id="cfg-gun-time" type="time" step="1">
+            </div>
+            <div class="cfg-field">
+              <div class="cfg-label">TIMEZONE</div>
+              <select class="cfg-input" id="cfg-gun-tz">
+                <option value="UTC" selected>UTC</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div class="cfg-field">
           <div class="cfg-label">EVENT TIMEZONE</div>
@@ -754,6 +567,11 @@ input,button,select{font-family:'Share Tech Mono',monospace;font-size:13px;borde
     </div>
 
   </div><!-- /content -->
+
+
+  <div style="display:none" aria-hidden="true">
+    <span id="hist-content"></span><span id="hist-count-badge"></span><span id="val-axis"></span><span id="val-axis-sub"></span><span id="val-wwleg"></span><span id="val-sl-axis"></span><span id="val-sl-length"></span><span id="val-sl-bias-sub"></span><span id="bias-accent"></span><span id="val-ww-axis"></span><span id="val-ww-bias"></span><span id="val-rc-rm"></span><span id="val-pin-rm"></span><span id="val-rm-diff-sub"></span><span id="rm-diff-accent"></span><span id="val-reach-leg"></span><span id="val-rm-brg"></span><span id="val-reach-twa"></span><span id="opt-badge"></span><span id="opt-rc-pen"></span><span id="opt-pin-pen"></span><svg id="opt-svg"></svg>
+  </div>
 
   <!-- Floating refresh button -->
   <button id="refresh-btn" onclick="manualRefresh()" title="Refresh now">↻</button>
@@ -815,6 +633,7 @@ let STATE = {
   detectedMarks: [],
   markHitboxes: [],
   activeAssignSN: null,
+  mapZoom: 1,
 };
 
 // ══════════════════════════════════════════════════════════════════
@@ -1328,15 +1147,9 @@ function updateUI(){
 
   // RM source badge
   if(rm){
-    el('rm-source-badge').textContent=rm.source==='gps'?'GPS PING':rm.source==='manual'?'MANUAL':'INFERRED';
-    el('rm-dot').className='rm-dot '+(rm.source==='gps'?'gps':'set');
-    el('rm-status-text').textContent=rm.source==='gps'?`GPS: ${rm.lat.toFixed(5)}, ${rm.lon.toFixed(5)}`:`${rm.lat.toFixed(5)}, ${rm.lon.toFixed(5)}`;
-  }
+    }
 
   // Map tab quick stats
-  el('map-axis').textContent=courseAxis?`${courseAxis.toFixed(1)}° / ${((courseAxis+180)%360).toFixed(1)}°`:'—';
-  if(slBias!=null) el('map-bias').textContent=`${Math.abs(Math.round(slBias))}m ${slBias>0?'RC':'PIN'}`;
-  else el('map-bias').textContent='—';
   const hint=el('map-tap-hint');
   if(hint) hint.textContent=STATE.rm?'TAP MAP TO MOVE REACH MARK':'TAP TO SET REACH MARK';
 }
@@ -1737,45 +1550,7 @@ function renderHistory(){
 // ══════════════════════════════════════════════════════════════════
 //  GPS + MANUAL REACH MARK
 // ══════════════════════════════════════════════════════════════════
-let rmMode='gps';
-function setRMMode(mode){
-  rmMode=mode;
-  el('rm-gps-btn').className='rm-btn '+(mode==='gps'?'active':'');
-  el('rm-manual-btn').className='rm-btn '+(mode==='manual'?'active':'');
-  el('rm-gps-section').style.display=mode==='gps'?'block':'none';
-  el('rm-manual-section').style.display=mode==='manual'?'block':'none';
-}
 
-async function gpsSnapRM(){
-  const btn=el('gps-snap-btn');
-  btn.textContent='GETTING GPS…';
-  btn.style.opacity='0.6';
-  try{
-    const pos=await new Promise((res,rej)=>
-      navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000})
-    );
-    STATE.rm={lat:pos.coords.latitude, lon:pos.coords.longitude, source:'gps'};
-    btn.textContent='✓ GPS POSITION SET';
-    btn.style.background='var(--green)';
-    setTimeout(()=>{btn.textContent='TAP AT REACH MARK → SET POSITION';btn.style.background='';btn.style.opacity='';},3000);
-    updateUI();
-    saveStateToStorage();
-  }catch(e){
-    btn.textContent='GPS ERROR — TRY AGAIN';
-    btn.style.background='var(--red)';
-    setTimeout(()=>{btn.textContent='TAP AT REACH MARK → SET POSITION';btn.style.background='';btn.style.opacity='';},3000);
-    alert('GPS error: '+(e.message||'location unavailable. Check browser permissions.'));
-  }
-}
-
-function setManualRM(){
-  const lat=parseFloat(el('rm-lat').value);
-  const lon=parseFloat(el('rm-lon').value);
-  if(isNaN(lat)||isNaN(lon)){alert('Enter valid lat/lon coordinates');return;}
-  STATE.rm={lat,lon,source:'manual'};
-  updateUI();
-  saveStateToStorage();
-}
 
 // Map tap to set reach mark
 document.getElementById('map-wrap').addEventListener('click', function(e){
@@ -2098,13 +1873,19 @@ function updateUpdateBanner(){
 }
 function el(id){return document.getElementById(id)}
 
+function adjustMapZoom(factor){
+  STATE.mapZoom=Math.min(3,Math.max(0.6,(STATE.mapZoom||1)*factor));
+  drawMap();
+}
+
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelector(`[data-panel="${name}"]`).classList.add('active');
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   el('panel-'+name).classList.add('active');
+  const content=el('content');
+  if(content) content.style.overflowY=name==='map'?'hidden':'auto';
   if(name==='map') drawMap();
-  if(name==='history') renderHistory();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2151,27 +1932,29 @@ function loadStateFromStorage(){
   }catch(e){ return false; }
 }
 
+function gunTsFromInputs(){
+  const date=el('cfg-gun-date')?.value;
+  const time=el('cfg-gun-time')?.value;
+  if(!date||!time) return null;
+  const iso=`${date}T${time}Z`;
+  const ts=Date.parse(iso);
+  return Number.isFinite(ts)?ts:null;
+}
+
 function saveConfig(){
   const cfgRaw=(el('cfg-eventid').value||'').trim();
   const cfgParsed=parseEventContext(cfgRaw);
   STATE.eventId=cfgParsed.eventId || cfgRaw;
-  STATE.raceDay=cfgParsed.raceDay || parseInt(el('cfg-raceday').value)||1;
+  STATE.raceDay=1;
   STATE.division=(cfgParsed.division||el('cfg-division').value||'M32').trim()||'M32';
   STATE.mode=el('cfg-mode').value||'live';
   STATE.pollInterval=parseInt(el('cfg-poll').value)||30;
   STATE.windowMin=parseInt(el('cfg-window').value)||5;
-  STATE.eventTz=(el('cfg-timezone')?.value||DEFAULT_EVENT_TIMEZONE).trim()||DEFAULT_EVENT_TIMEZONE;
-  // Parse guns
-  const gunsRaw=el('cfg-guns').value.trim();
-  STATE.guns=gunsRaw.split('\n').map(l=>{
-    const parts=l.trim().split(',');
-    if(parts.length>=2){
-      const n=parseInt(parts[0].trim());
-      const ts=parseInt(parts[1].trim());
-      if(!isNaN(n)&&!isNaN(ts)) return [n,ts];
-    }
-    return null;
-  }).filter(Boolean);
+  STATE.eventTz=(el('cfg-timezone')?.value||'UTC').trim()||'UTC';
+
+  const raceNum=parseInt(el('cfg-gun-race')?.value||'1')||1;
+  const gunTs=gunTsFromInputs();
+  STATE.guns=gunTs?[[raceNum,gunTs]]:[];
 
   STATE.gateSNs=gateSnsFromInputs(el('cfg-ww').value, el('cfg-lw').value, el('cfg-rc').value, el('cfg-pin').value);
 
@@ -2183,28 +1966,31 @@ function saveConfig(){
   onModeChange();
   updateReplayControls();
 
-  el('hdr-sub').textContent=STATE.eventId?`EVENT: ${STATE.eventId.substring(0,12)}… · ${STATE.division} · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${STATE.eventTz}`:'—';
   saveStateToStorage();
   stopPolling();
   startPolling();
-  if(STATE.guns.length) loadHistory();
   switchTab('data');
   alert(`✓ Config saved. ${STATE.mode==='replay'?'Replay':'Polling'} started.`);
 }
 
 function fillConfigUI(){
   el('cfg-eventid').value=STATE.eventId||'';
-  el('cfg-raceday').value=STATE.raceDay||1;
   el('cfg-division').value=STATE.division||'M32';
   el('cfg-mode').value=STATE.mode||'live';
   el('cfg-poll').value=STATE.pollInterval||30;
   el('cfg-window').value=STATE.windowMin||5;
-  el('cfg-timezone').value=STATE.eventTz||DEFAULT_EVENT_TIMEZONE;
+  el('cfg-timezone').value=STATE.eventTz||'UTC';
   el('cfg-ww').value=(STATE.gateSNs?.WW||[]).join(', ');
   el('cfg-lw').value=(STATE.gateSNs?.LW||[]).join(', ');
   el('cfg-rc').value=(STATE.gateSNs?.RC_SNS||[]).join(', ');
   el('cfg-pin').value=STATE.gateSNs?.PIN_SN!=null?STATE.gateSNs.PIN_SN:'';
-  el('cfg-guns').value=(STATE.guns||[]).map(g=>g.join(',')).join('\n');
+  const g=(STATE.guns||[])[0];
+  if(g){
+    el('cfg-gun-race').value=g[0];
+    const d=new Date(g[1]);
+    el('cfg-gun-date').value=d.toISOString().slice(0,10);
+    el('cfg-gun-time').value=d.toISOString().slice(11,19);
+  }
   syncSelectedGun();
   syncReplayCursor(false);
   fillReplayRaceOptions();
@@ -2222,24 +2008,11 @@ function resetAll(){
 //  SETUP FLOW
 // ══════════════════════════════════════════════════════════════════
 function showSetupWarning(msg){
-  const err=el('setup-error');
-  const setupVisible=!!el('setup-overlay') && !el('setup-overlay').classList.contains('hidden');
-  if(err && setupVisible){
-    err.textContent=msg;
-    err.style.display='block';
-    return;
-  }
   const statusTxt=el('status-text');
   if(statusTxt) statusTxt.textContent=msg;
 }
 
-function clearSetupWarning(){
-  const err=el('setup-error');
-  if(err){
-    err.textContent='';
-    err.style.display='none';
-  }
-}
+function clearSetupWarning(){}
 
 function parseEventContext(input){
   const txt=(input||'').trim();
@@ -2260,85 +2033,18 @@ function parseEventContext(input){
 }
 
 
-function startApp(){
-  clearSetupWarning();
-  const rawUrl=el('setup-url').value.trim();
-  const parsed=parseEventContext(rawUrl);
-  const eventId=parsed.eventId || (/^[a-zA-Z0-9_\-]{10,40}$/.test(rawUrl)?rawUrl:null);
-  if(!eventId){
-    showSetupWarning('Enter a valid RaceSense URL or Event ID');
-    return;
-  }
-  STATE.eventId=eventId;
-  STATE.raceDay=parsed.raceDay||parseInt(el('setup-raceday').value)||1;
-  STATE.division=(parsed.division||STATE.division||'M32').trim()||'M32';
-  STATE.eventTz=(el('setup-timezone').value||DEFAULT_EVENT_TIMEZONE).trim()||DEFAULT_EVENT_TIMEZONE;
-  STATE.mode=el('setup-mode').value||'live';
-  const gunsRaw=(el('setup-guns')?.value||'').trim();
-  STATE.guns=gunsRaw.split('\n').map(l=>{
-    const parts=l.trim().split(',');
-    if(parts.length>=2){
-      const n=parseInt(parts[0].trim());
-      const ts=parseInt(parts[1].trim());
-      if(!isNaN(n)&&!isNaN(ts)) return [n,ts];
-    }
-    return null;
-  }).filter(Boolean);
 
-  STATE.gateSNs=gateSnsFromInputs(el('setup-ww').value, el('setup-lw').value, el('setup-rc').value, el('setup-pin').value);
-
-  syncSelectedGun();
-  syncReplayCursor(true);
-  el('hdr-sub').textContent=`EVENT: ${eventId.substring(0,14)}… · ${STATE.division} · DAY ${STATE.raceDay} · ${STATE.mode.toUpperCase()} · ${STATE.eventTz}`;
-  saveStateToStorage();
-  launchApp();
-}
-
-function launchApp(){
-  el('setup-overlay').classList.add('hidden');
-  el('app').style.display='flex';
-  syncSelectedGun();
-  fillConfigUI();
-  updateReplayControls();
-  startPolling();
-  if(STATE.guns.length) setTimeout(loadHistory,1200);
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════════════════════════
 window.addEventListener('load', ()=>{
-  if(loadStateFromStorage()&&STATE.eventId){
-    launchApp();
-  }
-  if(STATE.eventId) el('setup-url').value=STATE.eventId;
-  if(!el('setup-ww').value) el('setup-ww').value=WORLDS_DEFAULT_GATE_SNS.WW.join(', ');
-  if(!el('setup-lw').value) el('setup-lw').value=WORLDS_DEFAULT_GATE_SNS.LW.join(', ');
-  if(!el('setup-rc').value) el('setup-rc').value=WORLDS_DEFAULT_GATE_SNS.RC_SNS.join(', ');
-  if(!el('setup-pin').value) el('setup-pin').value=String(WORLDS_DEFAULT_GATE_SNS.PIN_SN);
-  if(el('setup-mode')) el('setup-mode').value=STATE.mode||'live';
-  if(el('setup-guns')) el('setup-guns').value=(STATE.guns||[]).map(g=>g.join(',')).join('\n');
+  loadStateFromStorage();
   if(!STATE.gateSNs||!Array.isArray(STATE.gateSNs.WW)||!STATE.gateSNs.WW.length){STATE.gateSNs={...WORLDS_DEFAULT_GATE_SNS};}
-  el('setup-timezone').value=STATE.eventTz||DEFAULT_EVENT_TIMEZONE;
-  if(STATE.gateSNs?.WW?.length) el('setup-ww').value=STATE.gateSNs.WW.join(', ');
-  if(STATE.gateSNs?.LW?.length) el('setup-lw').value=STATE.gateSNs.LW.join(', ');
-  if(STATE.gateSNs?.RC_SNS?.length) el('setup-rc').value=STATE.gateSNs.RC_SNS.join(', ');
-  if(STATE.gateSNs?.PIN_SN) el('setup-pin').value=STATE.gateSNs.PIN_SN;
-
-  const setupBtn=el('setup-btn');
-  if(setupBtn){
-    setupBtn.addEventListener('click', ev=>{ev.preventDefault(); startApp();});
-    setupBtn.addEventListener('touchend', ev=>{ev.preventDefault(); startApp();}, {passive:false});
-  }
-  ['setup-url','setup-raceday','setup-timezone','setup-guns','setup-ww','setup-lw','setup-rc','setup-pin'].forEach(id=>{
-    const node=el(id); if(!node) return;
-    node.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); startApp(); } });
-  });
+  fillConfigUI();
   el('replay-slider')?.addEventListener('input', setReplayCursorFromSlider);
   el('replay-back-big')?.addEventListener('click', ()=>nudgeReplayCursor(-300000));
   el('replay-back-small')?.addEventListener('click', ()=>nudgeReplayCursor(-30000));
   el('replay-fwd-small')?.addEventListener('click', ()=>nudgeReplayCursor(30000));
   el('replay-fwd-big')?.addEventListener('click', ()=>nudgeReplayCursor(300000));
+  startPolling();
+  switchTab('settings');
 });
 
 // Resize redraw
@@ -2505,7 +2211,7 @@ drawMap = function(){
   const keyPts=[]; [WWGATE,LWGATE,RC,PIN,WW_A,WW_B,LW_A,LW_B,MID,rm,...detected].forEach(p=>{if(p)keyPts.push(p)});
   if(!keyPts.length){
     ctx.fillStyle='rgba(96,128,160,.4)'; ctx.font='10px Share Tech Mono'; ctx.textAlign='center';
-    ctx.fillText('No mark data yet',W/2,H/2-8); ctx.fillText('Poll to fetch positions',W/2,H/2+10); renderDetectedMarks(); return;
+    ctx.fillText('No mark data yet',W/2,H/2-8); ctx.fillText('Poll to fetch positions',W/2,H/2+10); if(el('center-wind-bearing')) el('center-wind-bearing').textContent='—°'; renderDetectedMarks(); return;
   }
   const axisRef=(WWGATE&&LWGATE)?brg(LWGATE.lat,LWGATE.lon,WWGATE.lat,WWGATE.lon):0;
   const THETA=(axisRef-90)*D2R;
@@ -2518,7 +2224,8 @@ drawMap = function(){
   const mnX=Math.min(...rk.map(p=>p[0])), mxX=Math.max(...rk.map(p=>p[0]));
   const mnY=Math.min(...rk.map(p=>p[1])), mxY=Math.max(...rk.map(p=>p[1]));
   const pad=28; const rangeX=mxX-mnX||100, rangeY=mxY-mnY||100;
-  const scale=Math.min((W-pad*2)/rangeX,(H-pad*2)/rangeY);
+  const baseScale=Math.min((W-pad*2)/rangeX,(H-pad*2)/rangeY);
+  const scale=baseScale*(STATE.mapZoom||1);
   const offX=pad+(W-pad*2-rangeX*scale)/2, offY=pad+(H-pad*2-rangeY*scale)/2;
   const tX=rx=>offX+(rx-mnX)*scale, tY=ry=>H-offY-(ry-mnY)*scale;
   const tP=(la,lo)=>{const [rx,ry]=toRot(la,lo); return [tX(rx),tY(ry)]};
@@ -2552,8 +2259,15 @@ drawMap = function(){
     if(assigned) continue;
     const [x,y]=tP(m.lat,m.lon); drawMark(x,y,'#c0ccd8',String(m.sn),5,String(m.sn));
   }
-  // wind arrow
-  const twd=getEffectiveTwd(); if(twd!=null){ const wx=W-24, wy=24; ctx.save(); ctx.translate(wx,wy); ctx.rotate(twd*D2R); ctx.strokeStyle='rgba(0,212,255,.85)'; ctx.fillStyle='rgba(0,212,255,.85)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(0,-16); ctx.lineTo(0,16); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0,-16); ctx.lineTo(-4,-8); ctx.lineTo(4,-8); ctx.closePath(); ctx.fill(); ctx.restore(); }
+  const twd=getEffectiveTwd();
+  const centerArrow=el('center-wind-arrow');
+  const centerBearing=el('center-wind-bearing');
+  if(twd!=null){
+    if(centerArrow) centerArrow.setAttribute('transform',`translate(30,30) rotate(${twd})`);
+    if(centerBearing) centerBearing.textContent=`${Math.round(twd)}°`;
+  }else if(centerBearing){
+    centerBearing.textContent='—°';
+  }
   renderDetectedMarks();
 };
 window.addEventListener('resize', ()=>{ try{ drawMap(); }catch(e){} });
