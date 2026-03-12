@@ -740,36 +740,48 @@ input[type=range] { width: 100%; accent-color: var(--teal); height: 4px; margin:
   <!-- PRIORITY CARDS -->
   <div class="priority-cards" id="priority-cards" style="flex-shrink:0;padding:0 12px 0">
 
-    <!-- Optimal Start — canvas diagram -->
+    <!-- Optimal Start — canvas diagram + TWA -->
     <div class="priority-card" id="pc-opt" style="padding-bottom:10px">
       <div class="pc-label">Optimal Start Position</div>
-      <canvas id="start-line-canvas" height="44" style="width:100%;display:block;margin:6px 0 2px"></canvas>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="pc-sub" id="pc-opt-sub">Set RC, PIN & reach mark</div>
-        <div class="pc-badge" id="pc-opt-badge" style="position:static;transform:none">––</div>
+      <div style="margin-top:4px">
+        <!-- Heat bar canvas -->
+        <canvas id="start-line-canvas" height="44" style="width:100%;display:block"></canvas>
+        <!-- PIN excess left, RC excess right — always red -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <div style="display:flex;align-items:center;gap:3px">
+            <span style="font-size:9px;color:var(--text3)">PIN</span>
+            <span id="pc-opt-pin-excess" style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--red)">––</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:3px">
+            <span id="pc-opt-rc-excess" style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--red)">––</span>
+            <span style="font-size:9px;color:var(--text3)">RC</span>
+          </div>
+        </div>
+        <!-- TWA centred below -->
+        <div style="text-align:center;margin-top:6px;border-top:1px solid var(--border);padding-top:6px">
+          <div style="font-size:9px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Reach TWA</div>
+          <div class="pc-value teal" id="pc-reach-twa" style="font-size:26px;line-height:1.1">––°</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:1px">mid → RM</div>
+        </div>
       </div>
     </div>
 
     <!-- Reach Leg Asymmetry -->
     <div class="priority-card" id="pc-reach">
       <div class="pc-label">Reach Leg Asymmetry</div>
-      <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
         <div style="flex:1">
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Pin → RM</div>
-          <div class="pc-value" id="pc-reach-pin" style="font-size:22px">––</div>
+          <div class="pc-value" id="pc-reach-pin" style="font-size:13px">––</div>
         </div>
-        <div style="text-align:center;min-width:48px">
+        <div style="text-align:center;min-width:64px">
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Diff</div>
-          <div class="pc-value" id="pc-reach-diff" style="font-size:18px;color:var(--red)">––</div>
+          <div class="pc-value" id="pc-reach-diff" style="font-size:26px;line-height:1.1">––</div>
+          <div id="pc-reach-pct" style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;margin-top:2px;color:var(--text2)">––</div>
         </div>
         <div style="flex:1;text-align:right">
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">RC → RM</div>
-          <div class="pc-value" id="pc-reach-rc" style="font-size:22px;color:var(--amber)">––</div>
-        </div>
-        <div style="width:1px;height:40px;background:var(--border);margin:0 4px"></div>
-        <div style="text-align:right;min-width:52px">
-          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Extra</div>
-          <div class="pc-value" id="pc-reach-pct" style="font-size:20px">––</div>
+          <div class="pc-value" id="pc-reach-rc" style="font-size:13px">––</div>
         </div>
       </div>
     </div>
@@ -785,10 +797,10 @@ input[type=range] { width: 100%; accent-color: var(--teal); height: 4px; margin:
           <div style="font-size:9px;color:var(--text3);margin-top:1px">axis <span id="pc-lw-axis" style="color:var(--text2);font-size:11px">––°</span></div>
         </div>
         <div style="width:1px;height:50px;background:var(--border)"></div>
-        <div style="flex:1;text-align:right">
+        <div style="flex:1;text-align:center">
           <div style="font-size:9px;color:var(--text3);letter-spacing:.06em">BIAS</div>
-          <div class="pc-value" id="pc-lw-bias-m" style="font-size:22px">––</div>
-          <div class="pc-sub" id="pc-lw-bias-side">––</div>
+          <div class="pc-value" id="pc-lw-bias-m" style="font-size:26px">––</div>
+          <div id="pc-lw-bias-side" style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--green);margin-top:2px">––</div>
         </div>
       </div>
     </div>
@@ -804,10 +816,10 @@ input[type=range] { width: 100%; accent-color: var(--teal); height: 4px; margin:
           <div style="font-size:9px;color:var(--text3);margin-top:1px">axis <span id="pc-ww-axis" style="color:var(--text2);font-size:11px">––°</span></div>
         </div>
         <div style="width:1px;height:50px;background:var(--border)"></div>
-        <div style="flex:1;text-align:right">
+        <div style="flex:1;text-align:center">
           <div style="font-size:9px;color:var(--text3);letter-spacing:.06em">BIAS</div>
-          <div class="pc-value" id="pc-ww-bias-m" style="font-size:22px">––</div>
-          <div class="pc-sub" id="pc-ww-bias-side">––</div>
+          <div class="pc-value" id="pc-ww-bias-m" style="font-size:26px">––</div>
+          <div id="pc-ww-bias-side" style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--green);margin-top:2px">––</div>
         </div>
       </div>
     </div>
@@ -1628,8 +1640,11 @@ function computeOptimalStart(RC, PIN, rm, windDir, tws) {
   }
   if(minIdx<0) return null;
   const best = times[minIdx];
-  const advantage = (times[0].t-minT + times[N].t-minT) / 2; // rough avg vs ends
-  return { best, minIdx, times, minT, pctFromRC: +(best.f*100).toFixed(0), advantage: +advantage.toFixed(1) };
+  const pinExcess = +(times[N].t - minT).toFixed(1);  // PIN is index N (f=1.0=100% from RC = pin end)
+  const rcExcess  = +(times[0].t - minT).toFixed(1);  // RC  is index 0 (f=0.0=0%  from RC = rc end)
+  const advantage = (rcExcess + pinExcess) / 2;
+  return { best, minIdx, times, minT, pctFromRC: +(best.f*100).toFixed(0),
+           advantage: +advantage.toFixed(1), pinExcess, rcExcess };
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1695,7 +1710,7 @@ function updateDataPage() {
         const gateWidth = Math.round(hav(STATE.marks.WW[0].lat,STATE.marks.WW[0].lon,STATE.marks.WW[1].lat,STATE.marks.WW[1].lon));
         const biasM = Math.round(Math.sin(Math.abs(wb)*D2R) * gateWidth / 2);
         // WW: port favoured = right turn favour, stbd favoured = left turn favour
-        const side = wb>0 ? 'Right turn favour' : 'Left turn favour';
+        const side = wb>0 ? 'Right turn' : 'Left turn';
         const el = document.getElementById('pc-ww-bias-m');
         el.textContent = biasM+'m';
         el.className = 'pc-value ' + (biasM<5?'green':biasM<15?'amber':'red');
@@ -1724,7 +1739,7 @@ function updateDataPage() {
         const gateWidth = Math.round(hav(STATE.marks.LW[0].lat,STATE.marks.LW[0].lon,STATE.marks.LW[1].lat,STATE.marks.LW[1].lon));
         const biasM = Math.round(Math.sin(Math.abs(lb)*D2R) * gateWidth / 2);
         // LW: port favoured = right turn favour, stbd favoured = left turn favour
-        const side = lb>0 ? 'Right turn favour' : 'Left turn favour';
+        const side = lb>0 ? 'Right turn' : 'Left turn';
         const el = document.getElementById('pc-lw-bias-m');
         el.textContent = biasM+'m';
         el.className = 'pc-value ' + (biasM<5?'green':biasM<15?'amber':'red');
@@ -1740,17 +1755,28 @@ function updateDataPage() {
 
   // ── Optimal Start canvas ─────────────────────────────────
   if(RC&&PIN&&rm) {
+    // Mid-line point
+    const midLat = (RC.lat + PIN.lat) / 2;
+    const midLon = (RC.lon + PIN.lon) / 2;
+    // Bearing from mid-line to reach mark
+    const brgToRM = brg(midLat, midLon, rm.lat, rm.lon);
+    // TWA = absolute angle between wind direction and bearing to RM
+    let twaToRM = Math.abs(((brgToRM - windBlend + 540) % 360) - 180);
+    document.getElementById('pc-reach-twa').textContent = Math.round(twaToRM) + '°';
+
     const opt = computeOptimalStart(RC, PIN, rm, windBlend, tws);
     if(opt) {
-      const pctFromPin = 100 - opt.pctFromRC;  // % from PIN end
-      const pos = pctFromPin<33 ? 'RC side' : pctFromPin>66 ? 'PIN side' : 'mid-line';
-      document.getElementById('pc-opt-sub').textContent = `${pctFromPin}% from PIN · ${pos}`;
-      document.getElementById('pc-opt-badge').textContent = '+'+opt.advantage.toFixed(1)+'s adv';
+      const pinEl = document.getElementById('pc-opt-pin-excess');
+      const rcEl  = document.getElementById('pc-opt-rc-excess');
+      pinEl.textContent = '+' + opt.pinExcess.toFixed(1) + 's';
+      rcEl.textContent  = '+' + opt.rcExcess.toFixed(1)  + 's';
+      // Excess labels are always red (set in HTML); no dynamic override needed
       drawStartLineDiagram(opt);
     }
   } else {
-    document.getElementById('pc-opt-sub').textContent = !RC||!PIN ? 'Need RC & PIN marks' : !rm ? 'Set reach mark first' : '––';
-    document.getElementById('pc-opt-badge').textContent = '––';
+    document.getElementById('pc-reach-twa').textContent = '––°';
+    document.getElementById('pc-opt-pin-excess').textContent = '––';
+    document.getElementById('pc-opt-rc-excess').textContent  = '––';
     drawStartLineDiagram(null);
   }
 
@@ -1775,7 +1801,8 @@ function updateDataPage() {
 
     const pctEl = document.getElementById('pc-reach-pct');
     pctEl.textContent = '+'+extraPct+'%';
-    pctEl.className = 'pc-value ' + (parseFloat(extraPct)<3?'green':parseFloat(extraPct)<8?'amber':'red');
+    const pctV = parseFloat(extraPct);
+    pctEl.style.color = pctV<3 ? 'var(--green)' : pctV<8 ? 'var(--amber)' : 'var(--red)';
   } else {
     document.getElementById('pc-reach-pin').textContent = '––';
     document.getElementById('pc-reach-rc').textContent  = '––';
@@ -1829,41 +1856,74 @@ function drawStartLineDiagram(opt) {
     return;
   }
 
-  // pctFromRC: 0=RC end, 100=PIN end
-  // pctFromPin = 100 - pctFromRC: 0=PIN end, 100=RC end
-  // Map: pinX (left) = 0% from PIN, rcX (right) = 100% from PIN
+  // pctFromRC: 0=RC end, 100=PIN end → pctFromPin = 100 - pctFromRC
   const pctFromPin = 100 - opt.pctFromRC;
+  // Layout: pinX=left(0%), rcX=right(100% from PIN)
   const optX = pinX + (rcX - pinX) * (pctFromPin / 100);
 
-  // Colour based on advantage: green up to ~3s, smoothly transitions to red at 10s+
-  const adv = Math.abs(opt.advantage);
-  const t = Math.min(1, adv / 10);  // 0 at 0s adv, 1 at 10s+ adv
-  const r = Math.round(t * 255);
-  const g = Math.round((1 - t) * 229);
-  const optColor = `rgb(${r},${g},${Math.round((1-t)*50)})`;
+  // Helper: time delta → colour (green <4s, yellow 4-7, orange 7-10, red 10+)
+  function deltaColor(delta, alpha) {
+    const d = Math.max(0, delta);
+    let rv, gv, bv;
+    if(d < 4) {
+      // green → yellow: 0..4s
+      const u = d / 4;
+      rv = Math.round(u * 255); gv = Math.round(210 - u * (210-183)); bv = 0;
+    } else if(d < 7) {
+      // yellow → orange: 4..7s
+      const u = (d - 4) / 3;
+      rv = 255; gv = Math.round(183 - u * (183-80)); bv = 0;
+    } else if(d < 10) {
+      // orange → red: 7..10s
+      const u = (d - 7) / 3;
+      rv = 255; gv = Math.round(80 - u * 80); bv = 0;
+    } else {
+      rv = 255; gv = 0; bv = 0;
+    }
+    return alpha != null ? `rgba(${rv},${gv},${bv},${alpha})` : `rgb(${rv},${gv},${bv})`;
+  }
 
-  // Highlight zone (±10% of line around optimal)
-  const zoneW = (rcX - pinX) * 0.12;
-  const grad = ctx.createLinearGradient(optX - zoneW*2, 0, optX + zoneW*2, 0);
-  grad.addColorStop(0,   `rgba(${r},${g},0,0)`);
-  grad.addColorStop(0.5, `rgba(${r},${g},0,0.2)`);
-  grad.addColorStop(1,   `rgba(${r},${g},0,0)`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(optX - zoneW*2, 4, zoneW * 4, H - 8);
+  // Draw coloured heat bar across the full line, using per-point time data
+  // times array: index 0 = RC (f=0), index N = PIN (f=1); but layout is PIN left → RC right
+  // so screen position goes from pinX(times[N]) to rcX(times[0])
+  const N = opt.times.length - 1;
+  const barH = 4, barY = lineY - barH/2;
+  for(let i = 0; i <= N; i++) {
+    const delta = opt.times[i].t - opt.minT;
+    // f=0 is RC (right=rcX), f=1 is PIN (left=pinX)
+    const screenX = rcX + (pinX - rcX) * opt.times[i].f;
+    const segW = (rcX - pinX) / N;
+    ctx.fillStyle = deltaColor(delta, 0.7);
+    ctx.fillRect(screenX - segW/2, barY, segW + 0.5, barH);
+  }
 
-  // Optimal tick
-  ctx.strokeStyle = optColor; ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(optX, lineY - 10); ctx.lineTo(optX, lineY + 10); ctx.stroke();
+  // Glow zone around optimal (soft white overlay)
+  const zoneW = (rcX - pinX) * 0.10;
+  const glow = ctx.createLinearGradient(optX - zoneW*2, 0, optX + zoneW*2, 0);
+  glow.addColorStop(0,   'rgba(255,255,255,0)');
+  glow.addColorStop(0.5, 'rgba(255,255,255,0.12)');
+  glow.addColorStop(1,   'rgba(255,255,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(optX - zoneW*2, barY - 2, zoneW * 4, barH + 4);
+
+  // Optimal marker colour from its own delta (should be green = 0)
+  const optDelta = opt.times[opt.minIdx].t - opt.minT;  // should be ~0
+  const optColor = deltaColor(optDelta);
+
+  // Vertical tick at optimal
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
+  ctx.beginPath(); ctx.moveTo(optX, lineY - 11); ctx.lineTo(optX, lineY + 11); ctx.stroke();
+  ctx.globalAlpha = 1;
 
   // Diamond at optimal
   ctx.save(); ctx.translate(optX, lineY); ctx.rotate(Math.PI/4);
   ctx.beginPath(); ctx.rect(-5, -5, 10, 10);
-  ctx.fillStyle = optColor; ctx.fill();
+  ctx.fillStyle = '#00e5cc'; ctx.fill();
   ctx.strokeStyle = '#03101f'; ctx.lineWidth = 1; ctx.stroke();
   ctx.restore();
 
-  // % label (from PIN)
-  ctx.fillStyle = optColor; ctx.font = 'bold 9px Orbitron';
+  // % label (from PIN) below the diamond
+  ctx.fillStyle = '#00e5cc'; ctx.font = 'bold 9px Orbitron';
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillText(pctFromPin + '%', optX, lineY + 12);
 }
